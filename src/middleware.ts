@@ -6,25 +6,31 @@ export function middleware(request: NextRequest) {
 
   // Check if this is the default_index.html page (needed for browser component)
   const isDefaultIndex = request.nextUrl.pathname === '/default_index.html';
+  
+  // Allow iframe embedding - can be controlled via environment variable
+  const allowIframe = process.env.ALLOW_IFRAME !== 'false'; // Default to true
 
   // Security headers - Cloudflare compatible
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  // Allow framing for default_index.html (needed for browser component)
-  response.headers.set('X-Frame-Options', isDefaultIndex ? 'SAMEORIGIN' : 'DENY');
+  // Allow framing - removed X-Frame-Options to allow iframe embedding
+  // (X-Frame-Options is deprecated in favor of CSP frame-ancestors)
+  if (!allowIframe) {
+    response.headers.set('X-Frame-Options', 'DENY');
+  }
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
   // Content Security Policy
-  // Allow frame-ancestors for default_index.html so it can be loaded in iframe
-  const frameAncestors = isDefaultIndex ? "'self'" : "'none'";
+  // Allow frame-ancestors to enable iframe embedding
+  const frameAncestors = allowIframe ? '*' : (isDefaultIndex ? "'self'" : "'none'");
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust for production - remove unsafe-*
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self'",
+    "connect-src 'self' ws: wss:", // Allow WebSocket connections for Socket.io
     `frame-ancestors ${frameAncestors}`,
   ].join('; ');
 

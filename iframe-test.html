@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iframe Embedding Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    iframe {
+      width: 100%;
+      height: 800px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+    }
+    .info {
+      background: #e8f4f8;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ROL Platform Iframe Embedding Test</h1>
+    <div class="info">
+      <p><strong>Status:</strong> If you can see the ROL Platform loaded below, iframe embedding is working correctly!</p>
+      <p><strong>Note:</strong> Make sure to update the URL below to match your deployment URL.</p>
+    </div>
+    <iframe 
+      src="http://localhost:3001" 
+      title="ROL Platform"
+      allow="camera; microphone; geolocation"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals">
+    </iframe>
+    <p style="margin-top: 20px; color: #666; font-size: 14px;">
+      If the iframe is blank or shows an error, check:
+      <ul style="color: #666;">
+        <li>The server is running and accessible</li>
+        <li>No CORS or security headers are blocking the iframe</li>
+        <li>The URL in the iframe src attribute is correct</li>
+      </ul>
+    </p>
+  </div>
+</body>
+</html>
+
