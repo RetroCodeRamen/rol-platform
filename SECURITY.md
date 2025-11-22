@@ -1,6 +1,6 @@
 # Security Implementation
 
-This document outlines the comprehensive security measures implemented in the AOL Platform.
+This document outlines the comprehensive security measures implemented in the ROL Platform.
 
 ## Authentication & Authorization
 

@@ -1,4 +1,4 @@
-# AOL Platform - Retro Web Edition
+# ROL Platform - Retro Web Edition
 
 A nostalgic web-based reimplementation of classic AOL (5.0/6.0 era) as a single-page web application with a strong retro dial-up vibe.
 
@@ -44,18 +44,18 @@ npm install
    **Option A: MongoDB Atlas (Cloud - Free)**
    1. Go to https://www.mongodb.com/cloud/atlas
    2. Create a free account and cluster
-   3. Get your connection string (looks like: `mongodb+srv://username:password@cluster.mongodb.net/aol-platform`)
+   3. Get your connection string (looks like: `mongodb+srv://username:password@cluster.mongodb.net/rol-platform`)
    
    **Option B: Local MongoDB**
    1. Install MongoDB locally: https://www.mongodb.com/try/download/community
    2. Start MongoDB service
-   3. Use connection string: `mongodb://localhost:27017/aol-platform`
+   3. Use connection string: `mongodb://localhost:27017/rol-platform`
    
    **Option C: Docker MongoDB**
    ```bash
    docker run -d -p 27017:27017 --name mongodb mongo
    ```
-   Use connection string: `mongodb://localhost:27017/aol-platform`
+   Use connection string: `mongodb://localhost:27017/rol-platform`
 
 3. **Create `.env.local` file:**
    ```bash
