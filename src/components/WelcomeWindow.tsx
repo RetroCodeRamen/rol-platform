@@ -12,7 +12,7 @@ export default function WelcomeWindow() {
           <h1 className="text-2xl font-bold text-blue-800 mb-2">
             Welcome to Ramen Online, {currentUser?.screenName || currentUser?.username}!
           </h1>
-          <p className="text-gray-700">You've successfully connected to Ramen Online</p>
+          <p className="text-gray-700">You&apos;ve successfully connected to Ramen Online</p>
         </div>
 
         <div className="bg-white border-2 border-blue-300 rounded p-4 mb-4">

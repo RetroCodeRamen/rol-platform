@@ -23,13 +23,16 @@ interface ProfileData {
 }
 
 export default function ProfileWindow({ window }: ProfileWindowProps) {
+  // All hooks must be called before any conditional returns
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Early return after all hooks
   if (!window || !window.username) {
     return <div className="p-4">No user selected</div>;
   }
   const username = window.username;
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!username) {
@@ -118,7 +121,7 @@ export default function ProfileWindow({ window }: ProfileWindowProps) {
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-1">Favorite Quote</h3>
                 <p className="text-sm text-gray-800 italic bg-gray-50 p-3 rounded border border-gray-200">
-                  "{profile.profile.favoriteQuote}"
+                  &quot;{profile.profile.favoriteQuote}&quot;
                 </p>
               </div>
             )}

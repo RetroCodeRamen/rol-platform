@@ -229,7 +229,7 @@ export default function ROLShell() {
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center text-gray-700">
               <h2 className="text-2xl font-bold mb-2">Welcome, {currentUser?.screenName}!</h2>
-              <p className="text-lg">You've got mail!</p>
+              <p className="text-lg">You&apos;ve got mail!</p>
               <p className="text-sm mt-2 opacity-70">Use the toolbar above to get started</p>
             </div>
           </div>

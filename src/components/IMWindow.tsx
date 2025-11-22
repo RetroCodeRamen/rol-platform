@@ -14,10 +14,7 @@ interface IMWindowProps {
 }
 
 export default function IMWindow({ window }: IMWindowProps) {
-  if (!window || !window.participant) {
-    return <div className="p-4">No participant selected</div>;
-  }
-  const participant = window.participant; // Get participant from window props
+  // All hooks must be called before any conditional returns
   const [currentThread, setCurrentThread] = useState<IIMThread | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +31,12 @@ export default function IMWindow({ window }: IMWindowProps) {
   const currentUser = useAppStore((state) => state.currentUser);
   const updateIMThread = useAppStore((state) => state.updateIMThread);
   const openWindow = useAppStore((state) => state.openWindow);
+
+  // Early return after all hooks
+  if (!window || !window.participant) {
+    return <div className="p-4">No participant selected</div>;
+  }
+  const participant = window.participant; // Get participant from window props
 
   // Update window title format: MyScreenName : BuddyName - Instant Message
   useEffect(() => {
@@ -256,7 +259,7 @@ export default function IMWindow({ window }: IMWindowProps) {
         <span className="px-2 hover:bg-gray-300 cursor-pointer">Insert</span>
         <span className="px-2 hover:bg-gray-300 cursor-pointer">People</span>
         <div className="flex-1"></div>
-        <span className="text-gray-600 text-xs">{buddyScreenName}'s Warning Level: 0%</span>
+        <span className="text-gray-600 text-xs">{buddyScreenName}&apos;s Warning Level: 0%</span>
       </div>
 
       {/* Main Content Area */}

@@ -268,7 +268,7 @@ export default function CreateAccountScreen({ onBack, connectionType: propConnec
         </form>
 
         <div className="mt-6 text-center text-xs text-gray-500">
-          <p>By creating an account, you agree to ROL's Terms of Service</p>
+          <p>By creating an account, you agree to ROL&apos;s Terms of Service</p>
         </div>
       </div>
     </div>
