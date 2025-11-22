@@ -104,7 +104,7 @@ sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SER
     
     echo "✅ Deployment complete!"
     echo "🌐 Application should be running on http://\$SERVER_IP:3001"
-    echo "🌍 DNS: https://rol.ramn.online (if configured)"
+    echo "🌍 DNS: https://ramn.online (if configured)"
     echo "📊 Check status with: pm2 status"
 EOF
 
