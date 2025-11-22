@@ -1,0 +1,339 @@
+main-app.js?v=1763577776281:1847 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+read.js:2530 READ - Host validation failed: {hostName: '', hostType: undefined}
+app-index.tsx:25  Warning: Extra attributes from the server: cz-shortcut-listen
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/../node_modules/next/dist/client/app-index.js:117:11)
+window.console.error @ app-index.tsx:25
+console.error @ hydration-error-info.ts:72
+printWarning @ react-dom.development.js:94
+error @ react-dom.development.js:68
+warnForExtraAttributes @ react-dom.development.js:32731
+diffHydratedProperties @ react-dom.development.js:35117
+hydrateInstance @ react-dom.development.js:36127
+prepareToHydrateHostInstance @ react-dom.development.js:7246
+completeWork @ react-dom.development.js:19725
+completeUnitOfWork @ react-dom.development.js:25963
+performUnitOfWork @ react-dom.development.js:25759
+workLoopConcurrent @ react-dom.development.js:25734
+renderRootConcurrent @ react-dom.development.js:25690
+performConcurrentWorkOnRoot @ react-dom.development.js:24504
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+LoginScreen.tsx:71 [LoginScreen] No session cookies found, skipping stale session check
+LoginScreen.tsx:71 [LoginScreen] No session cookies found, skipping stale session check
+content.js:2524 Host is not supported
+content.js:2526 Host is not valid or supported
+LoginScreen.tsx:83 [LoginScreen] Fresh CSRF token fetched successfully
+content.js:2526 Host is not in insights whitelist
+LoginScreen.tsx:83 [LoginScreen] Fresh CSRF token fetched successfully
+LoginScreen.tsx:100 
+
+
+[LOGIN-SCREEN-1763577782753] ==========================================
+LoginScreen.tsx:101 [LOGIN-SCREEN-1763577782753] ========== STEP 1: LOGIN FORM SUBMITTED ==========
+LoginScreen.tsx:102 [LOGIN-SCREEN-1763577782753] ==========================================
+LoginScreen.tsx:103 [LOGIN-SCREEN-1763577782753] Timestamp: 2025-11-19T18:43:02.754Z
+LoginScreen.tsx:104 [LOGIN-SCREEN-1763577782753] Username: "retrocoderamen"
+LoginScreen.tsx:105 [LOGIN-SCREEN-1763577782753] Password provided: YES
+LoginScreen.tsx:106 [LOGIN-SCREEN-1763577782753] Connection type: "dialup"
+LoginScreen.tsx:110 [LOGIN-SCREEN-1763577782753] STEP 1.1: Validating form inputs...
+LoginScreen.tsx:116 [LOGIN-SCREEN-1763577782753] ✅ STEP 1.1 PASSED - form inputs valid
+LoginScreen.tsx:122 [LOGIN-SCREEN-1763577782753] STEP 1.2: Fetching CSRF token...
+LoginScreen.tsx:130 [LOGIN-SCREEN-1763577782753] CSRF fetch took 44ms
+LoginScreen.tsx:131 [LOGIN-SCREEN-1763577782753] CSRF response status: 200
+LoginScreen.tsx:137 [LOGIN-SCREEN-1763577782753] CSRF response data: {success: true, hasToken: true}
+LoginScreen.tsx:142 [LOGIN-SCREEN-1763577782753] ✅ STEP 1.2 PASSED - CSRF token obtained
+LoginScreen.tsx:150 [LOGIN-SCREEN-1763577782753] STEP 1.3: Preparing pending login data...
+LoginScreen.tsx:157 [LOGIN-SCREEN-1763577782753] Pending login data: {username: 'retrocoderamen', connectionType: 'dialup', isNewUser: false, hasPassword: true}
+LoginScreen.tsx:164 [LOGIN-SCREEN-1763577782753] STEP 1.4: Storing in sessionStorage...
+LoginScreen.tsx:168 [LOGIN-SCREEN-1763577782753] Storage operation took 0ms
+LoginScreen.tsx:170 [LOGIN-SCREEN-1763577782753] STEP 1.5: Verifying storage...
+LoginScreen.tsx:172 [LOGIN-SCREEN-1763577782753] Stored check result: EXISTS
+LoginScreen.tsx:174 [LOGIN-SCREEN-1763577782753] Stored data length: 98 characters
+LoginScreen.tsx:175 [LOGIN-SCREEN-1763577782753] Stored data preview: {"username":"retrocoderamen","password":"fa$tClam72!","connectionType":"dialup","isNewUser":false}...
+LoginScreen.tsx:178 [LOGIN-SCREEN-1763577782753] Parsed verification: {username: 'retrocoderamen', connectionType: 'dialup', isNewUser: false}
+LoginScreen.tsx:193 [LOGIN-SCREEN-1763577782753] STEP 1.6: Final check before navigation...
+LoginScreen.tsx:201 [LOGIN-SCREEN-1763577782753] ✅ STEP 1.6 PASSED - final check successful
+LoginScreen.tsx:203 [LOGIN-SCREEN-1763577782753] STEP 1.7: Navigating to /connect...
+LoginScreen.tsx:204 [LOGIN-SCREEN-1763577782753] ==========================================
+
+
+
+ConnectScreen.tsx:65 
+
+
+[MOUNT-1763577782929] ==========================================
+ConnectScreen.tsx:66 [MOUNT-1763577782929] ========== STEP 2: CONNECTSCREEN MOUNTED ==========
+ConnectScreen.tsx:67 [MOUNT-1763577782929] ==========================================
+ConnectScreen.tsx:68 [MOUNT-1763577782929] Timestamp: 2025-11-19T18:43:02.930Z
+ConnectScreen.tsx:69 [MOUNT-1763577782929] URL: http://localhost:3001/connect
+ConnectScreen.tsx:73 [MOUNT-1763577782929] Processing flag set to true
+ConnectScreen.tsx:178 [MOUNT-1763577782929] STEP 2.0: Performing initial check for pendingLogin...
+ConnectScreen.tsx:78 
+[CHECK-1763577782932-0] ========== STEP 2.1: CHECKING SESSIONSTORAGE ==========
+ConnectScreen.tsx:79 [CHECK-1763577782932-0] Attempt number: 1
+ConnectScreen.tsx:80 [CHECK-1763577782932-0] Timestamp: 2025-11-19T18:43:02.933Z
+ConnectScreen.tsx:82 [CHECK-1763577782932-0] STEP 2.1.1: Reading sessionStorage...
+ConnectScreen.tsx:86 [CHECK-1763577782932-0] Storage read took 1ms
+ConnectScreen.tsx:88 [CHECK-1763577782932-0] STEP 2.1.2: Checking result...
+ConnectScreen.tsx:89 [CHECK-1763577782932-0] pendingLogin value: EXISTS (98 chars)
+ConnectScreen.tsx:92 [CHECK-1763577782932-0] Data preview: {"username":"retrocoderamen","password":"fa$tClam72!","connectionType":"dialup","isNewUser":false}...
+ConnectScreen.tsx:121 [CHECK-1763577782932-0] STEP 2.1.3: Parsing JSON data...
+ConnectScreen.tsx:126 [CHECK-1763577782932-0] Parse took 0ms
+ConnectScreen.tsx:127 [CHECK-1763577782932-0] Parsed data: {username: 'retrocoderamen', connectionType: 'dialup', isNewUser: false, hasPassword: true, hasEmail: false}
+ConnectScreen.tsx:135 [CHECK-1763577782932-0] STEP 2.1.4: Marking as processed (NOT removing yet to prevent React StrictMode issues)...
+ConnectScreen.tsx:138 [CHECK-1763577782932-0] ✅ STEP 2.1 COMPLETE - data parsed
+ConnectScreen.tsx:180 [MOUNT-1763577782929] STEP 2.0 RESULT: FOUND - will process
+ConnectScreen.tsx:557 [MOUNT-1763577782929] STEP 2.FINAL: Checking if we should call processLoginFlow...
+ConnectScreen.tsx:558 [MOUNT-1763577782929] initialPendingLogin: EXISTS
+ConnectScreen.tsx:560 [MOUNT-1763577782929] ✅ Calling processLoginFlow with initialPendingLogin
+ConnectScreen.tsx:190 
+[FLOW-1763577782937] ========== STEP 3: PROCESSING LOGIN FLOW ==========
+ConnectScreen.tsx:191 [FLOW-1763577782937] Timestamp: 2025-11-19T18:43:02.937Z
+ConnectScreen.tsx:201 [FLOW-1763577782937] STEP 3.0: Removing pendingLogin from sessionStorage...
+ConnectScreen.tsx:203 [FLOW-1763577782937] ✅ Removed from sessionStorage
+ConnectScreen.tsx:205 [FLOW-1763577782937] STEP 3.1: Extracting login data...
+ConnectScreen.tsx:214 [FLOW-1763577782937] Extracted data: {connectionType: 'dialup', isNewUser: false, username: 'retrocoderamen', hasPassword: true, hasEmail: false, …}
+ConnectScreen.tsx:223 [FLOW-1763577782937] STEP 3.2: Checking connection type...
+ConnectScreen.tsx:224 [FLOW-1763577782937] Connection type: "dialup"
+ConnectScreen.tsx:225 [FLOW-1763577782937] Is new user: false
+ConnectScreen.tsx:226 [FLOW-1763577782937] Username: "retrocoderamen"
+ConnectScreen.tsx:281 [FLOW-1763577782937] ✅ STEP 3.2: DIAL-UP mode detected - starting 28-second connection sequence
+ConnectScreen.tsx:282 [FLOW-1763577782937] Will play dial-up sound and show animation
+ConnectScreen.tsx:283 [FLOW-1763577782937] Initializing dial-up animation...
+ConnectScreen.tsx:286 [ConnectScreen] Loading dial-up audio file...
+ConnectScreen.tsx:289 [ConnectScreen] Attempting to play dial-up sound...
+ConnectScreen.tsx:293 [ConnectScreen] ✅ Dial-up sound playback initiated
+ConnectScreen.tsx:65 
+
+
+[MOUNT-1763577782942] ==========================================
+ConnectScreen.tsx:66 [MOUNT-1763577782942] ========== STEP 2: CONNECTSCREEN MOUNTED ==========
+ConnectScreen.tsx:67 [MOUNT-1763577782942] ==========================================
+ConnectScreen.tsx:68 [MOUNT-1763577782942] Timestamp: 2025-11-19T18:43:02.942Z
+ConnectScreen.tsx:69 [MOUNT-1763577782942] URL: http://localhost:3001/connect
+ConnectScreen.tsx:73 [MOUNT-1763577782942] Processing flag set to true
+ConnectScreen.tsx:178 [MOUNT-1763577782942] STEP 2.0: Performing initial check for pendingLogin...
+ConnectScreen.tsx:78 
+[CHECK-1763577782942-0] ========== STEP 2.1: CHECKING SESSIONSTORAGE ==========
+ConnectScreen.tsx:79 [CHECK-1763577782942-0] Attempt number: 1
+ConnectScreen.tsx:80 [CHECK-1763577782942-0] Timestamp: 2025-11-19T18:43:02.942Z
+ConnectScreen.tsx:82 [CHECK-1763577782942-0] STEP 2.1.1: Reading sessionStorage...
+ConnectScreen.tsx:86 [CHECK-1763577782942-0] Storage read took 0ms
+ConnectScreen.tsx:88 [CHECK-1763577782942-0] STEP 2.1.2: Checking result...
+ConnectScreen.tsx:89 [CHECK-1763577782942-0] pendingLogin value: NOT FOUND
+ConnectScreen.tsx:94 [CHECK-1763577782942-0] All sessionStorage keys: ['__darkreader__wasEnabledForHost']
+ConnectScreen.tsx:99 [CHECK-1763577782942-0] STEP 2.1.3: No data found, scheduling retry...
+ConnectScreen.tsx:100 [CHECK-1763577782942-0] Will retry in 100ms (attempt 1 of 2)
+ConnectScreen.tsx:180 [MOUNT-1763577782942] STEP 2.0 RESULT: NOT FOUND - retry scheduled or checking session
+ConnectScreen.tsx:557 [MOUNT-1763577782942] STEP 2.FINAL: Checking if we should call processLoginFlow...
+ConnectScreen.tsx:558 [MOUNT-1763577782942] initialPendingLogin: NULL
+ConnectScreen.tsx:563 [MOUNT-1763577782942] ⏳ initialPendingLogin is null - retry logic or checkExistingSession will handle
+ConnectScreen.tsx:564 [MOUNT-1763577782942] If retry finds data, processLoginFlow will be called from within checkPendingLogin
+app-index.tsx:25  [ConnectScreen] ❌ Could not play dialup sound: AbortError: The play() request was interrupted by a call to pause().
+window.console.error @ app-index.tsx:25
+console.error @ hydration-error-info.ts:72
+eval @ ConnectScreen.tsx:291
+Promise.catch
+processLoginFlow @ ConnectScreen.tsx:290
+eval @ ConnectScreen.tsx:561
+commitHookEffectListMount @ react-dom.development.js:21102
+commitHookPassiveMountEffects @ react-dom.development.js:23154
+commitPassiveMountOnFiber @ react-dom.development.js:23259
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23256
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23370
+recursivelyTraversePassiveMountEffects @ react-dom.development.js:23237
+commitPassiveMountOnFiber @ react-dom.development.js:23267
+commitPassiveMountEffects @ react-dom.development.js:23225
+flushPassiveEffectsImpl @ react-dom.development.js:26497
+flushPassiveEffects @ react-dom.development.js:26438
+eval @ react-dom.development.js:26172
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+ConnectScreen.tsx:103 [RETRY-1763577783043] ========== RETRY ATTEMPT 2 ==========
+ConnectScreen.tsx:78 
+[CHECK-1763577783043-1] ========== STEP 2.2: CHECKING SESSIONSTORAGE ==========
+ConnectScreen.tsx:79 [CHECK-1763577783043-1] Attempt number: 2
+ConnectScreen.tsx:80 [CHECK-1763577783043-1] Timestamp: 2025-11-19T18:43:03.043Z
+ConnectScreen.tsx:82 [CHECK-1763577783043-1] STEP 2.2.1: Reading sessionStorage...
+ConnectScreen.tsx:86 [CHECK-1763577783043-1] Storage read took 1ms
+ConnectScreen.tsx:88 [CHECK-1763577783043-1] STEP 2.2.2: Checking result...
+ConnectScreen.tsx:89 [CHECK-1763577783043-1] pendingLogin value: NOT FOUND
+ConnectScreen.tsx:94 [CHECK-1763577783043-1] All sessionStorage keys: ['__darkreader__wasEnabledForHost']
+ConnectScreen.tsx:99 [CHECK-1763577783043-1] STEP 2.2.3: No data found, scheduling retry...
+ConnectScreen.tsx:100 [CHECK-1763577783043-1] Will retry in 100ms (attempt 2 of 2)
+ConnectScreen.tsx:103 [RETRY-1763577783144] ========== RETRY ATTEMPT 3 ==========
+ConnectScreen.tsx:78 
+[CHECK-1763577783144-2] ========== STEP 2.3: CHECKING SESSIONSTORAGE ==========
+ConnectScreen.tsx:79 [CHECK-1763577783144-2] Attempt number: 3
+ConnectScreen.tsx:80 [CHECK-1763577783144-2] Timestamp: 2025-11-19T18:43:03.144Z
+ConnectScreen.tsx:82 [CHECK-1763577783144-2] STEP 2.3.1: Reading sessionStorage...
+ConnectScreen.tsx:86 [CHECK-1763577783144-2] Storage read took 0ms
+ConnectScreen.tsx:88 [CHECK-1763577783144-2] STEP 2.3.2: Checking result...
+ConnectScreen.tsx:89 [CHECK-1763577783144-2] pendingLogin value: NOT FOUND
+ConnectScreen.tsx:94 [CHECK-1763577783144-2] All sessionStorage keys: ['__darkreader__wasEnabledForHost']
+ConnectScreen.tsx:117 [CHECK-1763577783144-2] ❌ STEP 2.3 FAILED - no data found after all retries
+ConnectScreen.tsx:109 [RETRY-1763577783144] ❌ Final retry FAILED - checking existing session
+ConnectScreen.tsx:149 [ConnectScreen] No pending login - checking existing session
+AuthService.ts:263 
+[AUTHSVC-1763577783145] ========== AuthService.getCurrentUser() START ==========
+AuthService.ts:272 [AUTHSVC-1763577783145] No cached user, fetching from server...
+AuthService.ts:273 [AUTHSVC-1763577783145] Request URL: /api/auth/current-user
+AuthService.ts:274 [AUTHSVC-1763577783145] Request options: { method: 'GET', credentials: 'include' }
+AuthService.ts:278   GET http://localhost:3001/api/auth/current-user 401 (Unauthorized)
+getCurrentUser @ AuthService.ts:278
+checkExistingSession @ ConnectScreen.tsx:150
+eval @ ConnectScreen.tsx:110
+setTimeout
+checkPendingLogin @ ConnectScreen.tsx:101
+eval @ ConnectScreen.tsx:104
+setTimeout
+checkPendingLogin @ ConnectScreen.tsx:101
+eval @ ConnectScreen.tsx:179
+commitHookEffectListMount @ react-dom.development.js:21102
+invokePassiveEffectMountInDEV @ react-dom.development.js:23980
+invokeEffectsInDev @ react-dom.development.js:26852
+legacyCommitDoubleInvokeEffectsInDEV @ react-dom.development.js:26835
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:26816
+flushPassiveEffectsImpl @ react-dom.development.js:26514
+flushPassiveEffects @ react-dom.development.js:26438
+eval @ react-dom.development.js:26172
+workLoop @ scheduler.development.js:256
+flushWork @ scheduler.development.js:225
+performWorkUntilDeadline @ scheduler.development.js:534
+AuthService.ts:283 [AUTHSVC-1763577783145] Response status: 401 Unauthorized
+AuthService.ts:284 [AUTHSVC-1763577783145] Response headers: {content-type: 'application/json', set-cookie: 'none'}
+AuthService.ts:290 [AUTHSVC-1763577783145] Response data: {success: false, hasUser: false}
+AuthService.ts:307 [AUTHSVC-1763577783145] ❌ No user in response (success: false)
+AuthService.ts:308 [AUTHSVC-1763577783145] ================================================
+
+ConnectScreen.tsx:160 [ConnectScreen] No existing session - redirecting to login
+LoginScreen.tsx:71 [LoginScreen] No session cookies found, skipping stale session check
+LoginScreen.tsx:71 [LoginScreen] No session cookies found, skipping stale session check
+LoginScreen.tsx:83 [LoginScreen] Fresh CSRF token fetched successfully
+LoginScreen.tsx:83 [LoginScreen] Fresh CSRF token fetched successfully

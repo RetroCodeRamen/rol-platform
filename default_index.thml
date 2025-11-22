@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RamenOnline - Welcome to ROL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* 1990s-ish AOL color theme */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #C0C0C0; /* classic grey */
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+      color: #000033;
+    }
+
+    a {
+      color: #0000cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Fake "browser chrome" bar */
+    .top-bar {
+      background: linear-gradient(to bottom, #004a9b, #003366);
+      color: white;
+      padding: 4px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #001a33;
+    }
+
+    .top-bar-left {
+      font-weight: bold;
+    }
+
+    .top-bar-right span {
+      margin-left: 8px;
+      padding: 0 4px;
+      border-left: 1px solid #336699;
+    }
+
+    /* Main layout */
+    .page-wrap {
+      margin: 10px;
+      border: 2px solid #003366;
+      background-color: #E5E5E5;
+    }
+
+    .page-header {
+      background: linear-gradient(to bottom, #0066cc, #004080);
+      color: white;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-header-title {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .page-header-subtitle {
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rol-logo {
+      width: 50px;
+      height: 50px;
+      background: #0066cc;
+      color: white;
+      font-weight: bold;
+      font-size: 26px;
+      border-radius: 10px;
+      border: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 1px 1px 0 #003366;
+    }
+
+    /* Content layout using a very 90s table */
+    table.layout {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.layout td {
+      vertical-align: top;
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    .sidebar {
+      width: 190px;
+      background-color: #D8E6FF;
+      border-right: 2px solid #003366;
+    }
+
+    .sidebar-box {
+      border: 1px solid #003366;
+      margin-bottom: 10px;
+      background-color: #F2F7FF;
+    }
+
+    .sidebar-title {
+      background: linear-gradient(to bottom, #0072BC, #00518A);
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 6px;
+    }
+
+    .sidebar-content {
+      padding: 6px;
+      line-height: 1.4;
+    }
+
+    .button-link {
+      display: block;
+      margin: 4px 0;
+      padding: 4px 6px;
+      background-color: #FFCC33;
+      border: 1px solid #996600;
+      color: #000033;
+      font-weight: bold;
+      text-align: center;
+      font-size: 11px;
+      box-shadow: 1px 1px 0 #CCCCCC;
+    }
+
+    .button-link:hover {
+      background-color: #FFE066;
+    }
+
+    .content-main {
+      background-color: #FFFFFF;
+    }
+
+    .content-box {
+      border: 1px solid #003366;
+      margin-bottom: 10px;
+      background-color: #FFFFFF;
+    }
+
+    .content-title {
+      background: linear-gradient(to bottom, #0072BC, #00518A);
+      color: white;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 5px 8px;
+    }
+
+    .content-body {
+      padding: 8px 10px;
+      line-height: 1.6;
+    }
+
+    .bullet-list {
+      margin-top: 4px;
+      margin-bottom: 0;
+      padding-left: 18px;
+    }
+
+    .highlight {
+      color: #006600;
+      font-weight: bold;
+    }
+
+    /* Footer */
+    .page-footer {
+      font-size: 10px;
+      text-align: center;
+      padding: 8px;
+      background-color: #C0C0C0;
+      border-top: 2px solid #999999;
+      color: #333333;
+    }
+
+    /* Very 90s marquee strip */
+    .ticker {
+      background-color: #003366;
+      color: #FFCC33;
+      font-size: 11px;
+      padding: 2px 4px;
+      border-top: 1px solid #001a33;
+      border-bottom: 1px solid #001a33;
+    }
+
+    .badge-beta {
+      background-color: #FFCC33;
+      color: #000033;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 6px;
+      border: 1px solid #996600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fake browser chrome -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      RamenOnline Web Browser
+    </div>
+    <div class="top-bar-right">
+      <span>File</span>
+      <span>Edit</span>
+      <span>Favorites</span>
+      <span>Help</span>
+    </div>
+  </div>
+
+  <div class="ticker">
+    <marquee behavior="scroll" direction="left" scrollamount="4">
+      Welcome to RamenOnline &middot; A love letter to the golden age of dial-up Internet &middot;
+      Surf. Slurp. Stay awhile.
+    </marquee>
+  </div>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <div class="logo-box">
+        <!-- Replace with your real logo image if you want -->
+        <!-- <img src="rol-logo.png" alt="RamenOnline Logo" class="rol-logo-img"> -->
+        <div class="rol-logo">R</div>
+        <div>
+          <div class="page-header-title">RamenOnline</div>
+          <div style="font-size: 11px;">ROL Web Access Center</div>
+        </div>
+      </div>
+      <div class="page-header-subtitle">
+        Connected to: <span class="highlight">ROL Net</span><br>
+        Experience the flavor of the 90s – now in your browser.
+        <span class="badge-beta">BETA</span>
+      </div>
+    </div>
+
+    <table class="layout">
+      <tr>
+        <!-- Sidebar -->
+        <td class="sidebar">
+          <div class="sidebar-box">
+            <div class="sidebar-title">ROL Quick Links</div>
+            <div class="sidebar-content">
+              <a href="#" class="button-link">Start ROL Browser</a>
+              <a href="#" class="button-link">Ramen Mail</a>
+              <a href="#" class="button-link">Buddy Roster</a>
+              <a href="#" class="button-link">Help &amp; Tips</a>
+            </div>
+          </div>
+
+          <div class="sidebar-box">
+            <div class="sidebar-title">System Status</div>
+            <div class="sidebar-content">
+              <strong>Dial-up:</strong> Ready<br>
+              <strong>ROL Servers:</strong> Online<br>
+              <strong>Message Center:</strong> Idle<br>
+              <br>
+              <span class="highlight">Tip:</span><br>
+              Double-click icons in the desktop client to open windows,
+              just like the classic AOL software.
+            </div>
+          </div>
+
+          <div class="sidebar-box">
+            <div class="sidebar-title">ROL Facts</div>
+            <div class="sidebar-content">
+              &bull; Inspired by AOL 4.0/5.0<br>
+              &bull; Retro-themed web experience<br>
+              &bull; Built for modern browsers<br>
+              &bull; Crafted with extra noodles
+            </div>
+          </div>
+        </td>
+
+        <!-- Main content -->
+        <td class="content-main">
+          <div class="content-box">
+            <div class="content-title">Welcome to RamenOnline (ROL)</div>
+            <div class="content-body">
+              RamenOnline is a <span class="highlight">web-based tribute</span> to the golden age
+              of Internet access. Remember the first time you heard the hiss and screech
+              of a 56k modem? The chunky blue toolbars, yellow running man, and portals
+              full of news, chat rooms, and weird little corners of the web?
+              <br><br>
+              ROL brings that feeling back – not as a joke, but as a cozy
+              nostalgia space where you can browse, chat, and check mail inside a
+              retro-styled environment that looks like it rolled straight out of 1998.
+            </div>
+          </div>
+
+          <div class="content-box">
+            <div class="content-title">What is the ROL Web Browser?</div>
+            <div class="content-body">
+              The RamenOnline Browser is a faux-desktop experience that runs
+              inside your modern browser. Once you sign on, you’ll see:
+              <ul class="bullet-list">
+                <li>A desktop-style hub with floating windows for Mail, Channels, and Chat.</li>
+                <li>An AOL-inspired toolbar with colorful icons for <em>Read</em>, <em>Write</em>,
+                    <em>Internet</em>, <em>Channels</em>, and more.</li>
+                <li>A dial-up style <strong>connection animation</strong> (complete with sound)
+                    that lovingly wastes a few seconds of your life, just like the old days.</li>
+                <li>Internal mailboxes at <code>yourname@ramn.online</code> for in-world messages.</li>
+              </ul>
+              Under the hood it’s powered by modern web tech, but the
+              interface is intentionally low-res, chunky, and a bit over-the-top:
+              gradients, beveled buttons, and more blue than should be legally allowed.
+            </div>
+          </div>
+
+          <div class="content-box">
+            <div class="content-title">A Love Letter to the Golden Age of the Net</div>
+            <div class="content-body">
+              RamenOnline isn’t trying to replace your modern browser. It’s here for:
+              <ul class="bullet-list">
+                <li>Hanging out with friends in a buddy-list-driven chat world.</li>
+                <li>Exploring themed “Channels” like Games, Tech, and Late Night Anime.</li>
+                <li>Reading quirky messages and announcements in a handcrafted portal page.</li>
+                <li>Reliving the vibe of logging in after school and seeing
+                    <strong>“You’ve got mail!”</strong></li>
+              </ul>
+              The “ramen” part is a reminder not to take any of this too seriously.
+              It’s warm, a little messy, and meant to be shared.
+              <br><br>
+              <span class="highlight">Plug in. Dial up. Slurp down.</span><br>
+              Welcome to RamenOnline.
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="page-footer">
+    RamenOnline &copy; 20XX &mdash; A fan-made homage to the classic online service era.<br>
+    All trademarks are property of their respective owners. ROL is not affiliated with AOL.
+  </div>
+
+</body>
+</html>
