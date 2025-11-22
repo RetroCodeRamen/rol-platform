@@ -96,8 +96,15 @@ sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SER
     pm2 save
     pm2 startup
     
+    # Update Cloudflare DNS if configured
+    if [ -f .env.cloudflare ]; then
+        echo "🌐 Updating Cloudflare DNS..."
+        export \$(cat .env.cloudflare | xargs) && ./scripts/update-cloudflare-dns.sh || echo "⚠️  DNS update skipped (check .env.cloudflare)"
+    fi
+    
     echo "✅ Deployment complete!"
     echo "🌐 Application should be running on http://\$SERVER_IP:3001"
+    echo "🌍 DNS: https://rol.ramn.online (if configured)"
     echo "📊 Check status with: pm2 status"
 EOF
 
