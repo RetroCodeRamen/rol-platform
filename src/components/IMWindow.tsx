@@ -32,26 +32,48 @@ export default function IMWindow({ window }: IMWindowProps) {
   const updateIMThread = useAppStore((state) => state.updateIMThread);
   const openWindow = useAppStore((state) => state.openWindow);
 
-  // Early return after all hooks
-  if (!window || !window.participant) {
-    return <div className="p-4">No participant selected</div>;
-  }
-  const participant = window.participant; // Get participant from window props
+  const participant = window?.participant;
 
   // Update window title format: MyScreenName : BuddyName - Instant Message
   useEffect(() => {
-    if (participant && currentUser) {
+    if (participant && currentUser && window) {
       const title = `${currentUser.screenName || currentUser.username} : ${participant} - Instant Message`;
       const updateWindow = useAppStore.getState().updateWindow;
       updateWindow(window.id, { title });
     }
-  }, [participant, currentUser, window.id]);
+  }, [participant, currentUser, window?.id]);
 
   // Load thread for this participant
+  const loadThread = async () => {
+    if (!participant) return;
+    setIsLoading(true);
+    try {
+      const thread = await chatService.getIMThread(participant);
+      if (thread) {
+        setCurrentThread(thread);
+        // Mark as read when viewing
+        updateIMThread(thread.id, { unreadCount: 0 });
+      } else {
+        // Create empty thread if none exists
+        setCurrentThread({
+          id: `thread_${participant}`,
+          participant,
+          messages: [],
+          unreadCount: 0,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load thread:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (participant) {
       loadThread();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participant]);
 
   useEffect(() => {
@@ -95,32 +117,13 @@ export default function IMWindow({ window }: IMWindowProps) {
       socket.off('im:new', handleNewMessage);
       socket.off('im:sent', handleSentMessage);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participant, currentUser]);
 
-  const loadThread = async () => {
-    if (!participant) return;
-    setIsLoading(true);
-    try {
-      const thread = await chatService.getIMThread(participant);
-      if (thread) {
-        setCurrentThread(thread);
-        // Mark as read when viewing
-        updateIMThread(thread.id, { unreadCount: 0 });
-      } else {
-        // Create empty thread if none exists
-        setCurrentThread({
-          id: `thread_${participant}`,
-          participant,
-          messages: [],
-          unreadCount: 0,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load thread:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Early return after all hooks
+  if (!window || !participant) {
+    return <div className="p-4">No participant selected</div>;
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

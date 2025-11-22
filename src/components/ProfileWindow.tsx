@@ -28,11 +28,7 @@ export default function ProfileWindow({ window }: ProfileWindowProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Early return after all hooks
-  if (!window || !window.username) {
-    return <div className="p-4">No user selected</div>;
-  }
-  const username = window.username;
+  const username = window?.username;
 
   useEffect(() => {
     if (!username) {
@@ -63,6 +59,11 @@ export default function ProfileWindow({ window }: ProfileWindowProps) {
 
     loadProfile();
   }, [username]);
+
+  // Early return after all hooks
+  if (!window || !username) {
+    return <div className="p-4">No user selected</div>;
+  }
 
   if (loading) {
     return (
