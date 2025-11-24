@@ -109,7 +109,11 @@ export class RestAuthService implements IAuthService {
     email: string,
     screenName?: string
   ): Promise<IUser> {
-    // console.log('[AuthService] Registering user:', { username, email });
+    const logId = `AUTHSVC-REGISTER-${Date.now()}`;
+    console.log(`[${logId}] ========== Registration START ==========`);
+    console.log(`[${logId}] Username: ${username}`);
+    console.log(`[${logId}] Email: ${email}`);
+    console.log(`[${logId}] Screen name: ${screenName || username}`);
     
     try {
       const response = await fetchWithCSRF(`${API_BASE}/register`, {
@@ -122,20 +126,48 @@ export class RestAuthService implements IAuthService {
         }),
       });
 
-      // console.log('[AuthService] Register response status:', response.status);
+      console.log(`[${logId}] Response status: ${response.status} ${response.statusText}`);
 
-      const data = await response.json();
-      // console.log('[AuthService] Register response data:', data);
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create account');
+      // Check if response is OK before parsing JSON
+      if (!response.ok) {
+        let errorMessage = 'Failed to create account';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error(`[${logId}] ❌ Registration failed: ${errorMessage}`);
+        } catch (parseError) {
+          // If JSON parsing fails, use status text
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          console.error(`[${logId}] ❌ Registration failed - could not parse error response`);
+        }
+        throw new Error(errorMessage);
       }
 
-      // console.log('[AuthService] Registration successful, attempting auto-login...');
+      const data = await response.json();
+      console.log(`[${logId}] Response data:`, { success: data.success, hasUser: !!data.user });
+
+      if (!data.success) {
+        const errorMessage = data.error || 'Failed to create account';
+        console.error(`[${logId}] ❌ Registration failed: ${errorMessage}`);
+        throw new Error(errorMessage);
+      }
+
+      console.log(`[${logId}] ✅ Registration successful, attempting auto-login...`);
       // After registration, auto-login
-      return this.login(username, password);
+      try {
+        const user = await this.login(username, password);
+        console.log(`[${logId}] ✅ Auto-login successful`);
+        console.log(`[${logId}] =========================================\n`);
+        return user;
+      } catch (loginError: any) {
+        console.error(`[${logId}] ❌ Auto-login failed after registration:`, loginError.message);
+        // User was created but login failed - this is a critical error
+        throw new Error(`Account created but login failed: ${loginError.message}. Please try logging in manually.`);
+      }
     } catch (error: any) {
-      // console.error('[AuthService] Registration error:', error);
+      console.error(`[${logId}] ❌ Registration error:`, error.message);
+      console.error(`[${logId}] Stack:`, error.stack);
+      console.log(`[${logId}] =========================================\n`);
       throw error;
     }
   }

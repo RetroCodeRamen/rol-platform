@@ -435,39 +435,57 @@ export default function ConnectScreen() {
                   
                   if (isNewUser) {
                     // Create new user
-                    // console.log(`[${authStepId}] Creating new user...`);
+                    console.log(`[${authStepId}] Creating new user...`);
+                    console.log(`[${authStepId}] Username: ${loginUsername}`);
+                    console.log(`[${authStepId}] Email: ${loginEmail}`);
                     if (!loginEmail) {
-                      throw new Error('Email is required for new user');
+                      const errorMsg = 'Email is required for new user';
+                      console.error(`[${authStepId}] ❌ ${errorMsg}`);
+                      throw new Error(errorMsg);
                     }
-                    // console.log(`[${authStepId}] Calling authService.register()...`);
-                    user = await authService.register(
-                      loginUsername,
-                      loginPassword,
-                      loginEmail,
-                      loginScreenName || loginUsername
-                    );
-                    addLogEntry('Successfully created a new user.');
-                    // console.log(`[${authStepId}] ✅ User created successfully`);
+                    console.log(`[${authStepId}] Calling authService.register()...`);
+                    try {
+                      user = await authService.register(
+                        loginUsername,
+                        loginPassword,
+                        loginEmail,
+                        loginScreenName || loginUsername
+                      );
+                      console.log(`[${authStepId}] ✅ User created and logged in successfully`);
+                      addLogEntry('Successfully created a new user.');
+                    } catch (registerError: any) {
+                      console.error(`[${authStepId}] ❌ Registration failed:`, registerError.message);
+                      console.error(`[${authStepId}] Error stack:`, registerError.stack);
+                      // Show error in log before redirecting
+                      addLogEntry(`Error: ${registerError.message}`);
+                      // Wait a bit so user can see the error
+                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      throw registerError;
+                    }
                   } else {
                     // Login existing user
                     const loginId = `DIALUP-LOGIN-${Date.now()}`;
-                    // console.log(`\n[${loginId}] ========== DIAL-UP LOGIN START ==========`);
-                    // console.log(`[${loginId}] Username: ${loginUsername}`);
-                    // console.log(`[${loginId}] Password provided: ${loginPassword ? 'YES' : 'NO'}`);
-                    // console.log(`[${loginId}] Calling authService.login()...`);
+                    console.log(`\n[${loginId}] ========== DIAL-UP LOGIN START ==========`);
+                    console.log(`[${loginId}] Username: ${loginUsername}`);
+                    console.log(`[${loginId}] Password provided: ${loginPassword ? 'YES' : 'NO'}`);
+                    console.log(`[${loginId}] Calling authService.login()...`);
                     
                     try {
                       user = await authService.login(loginUsername, loginPassword);
-                      // console.log(`[${loginId}] ✅ Login API call successful`);
-                      // console.log(`[${loginId}] User object:`, { id: user.id, username: user.username });
+                      console.log(`[${loginId}] ✅ Login API call successful`);
+                      console.log(`[${loginId}] User object:`, { id: user.id, username: user.username });
                     } catch (loginError: any) {
-                      // console.error(`[${loginId}] ❌ Login API call FAILED:`);
-                      // console.error(`[${loginId}] Error: ${loginError.message}`);
-                      // console.error(`[${loginId}] Stack: ${loginError.stack}`);
+                      console.error(`[${loginId}] ❌ Login API call FAILED:`);
+                      console.error(`[${loginId}] Error: ${loginError.message}`);
+                      console.error(`[${loginId}] Stack: ${loginError.stack}`);
+                      // Show error in log before redirecting
+                      addLogEntry(`Error: ${loginError.message}`);
+                      // Wait a bit so user can see the error
+                      await new Promise(resolve => setTimeout(resolve, 2000));
                       throw loginError; // Re-throw to be caught by outer try-catch
                     }
                     
-                    // console.log(`[${loginId}] =========================================\n`);
+                    console.log(`[${loginId}] =========================================\n`);
                   }
 
                   // Longer delay to allow cookies to be set and propagated
@@ -503,10 +521,23 @@ export default function ConnectScreen() {
                     loginErrorRef.current = 'Session creation failed. Please try again.';
                   }
                 } catch (err: any) {
-                  // console.error(`[${authStepId}] ❌ Authentication error:`, err);
-                  // console.error(`[${authStepId}] Error message: ${err.message}`);
-                  // console.error(`[${authStepId}] Stack: ${err.stack}`);
-                  loginErrorRef.current = err.message || (isNewUser ? 'Failed to create account' : 'Invalid screen name or password');
+                  console.error(`[${authStepId}] ❌ Authentication error:`, err.message);
+                  console.error(`[${authStepId}] Error stack:`, err.stack);
+                  
+                  // Determine user-friendly error message
+                  let errorMessage = err.message || (isNewUser ? 'Failed to create account' : 'Invalid screen name or password');
+                  
+                  // Provide more specific error messages
+                  if (err.message.includes('already exists')) {
+                    errorMessage = 'Username, screen name, or email already exists. Please try a different one.';
+                  } else if (err.message.includes('Server error') || err.message.includes('Database')) {
+                    errorMessage = 'Server error occurred. Please try again later.';
+                  } else if (err.message.includes('Account created but login failed')) {
+                    errorMessage = 'Account was created but automatic login failed. Please try logging in manually.';
+                  }
+                  
+                  loginErrorRef.current = errorMessage;
+                  console.error(`[${authStepId}] Setting error message: ${errorMessage}`);
                 }
           };
 

@@ -8,13 +8,18 @@ import dbConnect from '@/lib/db/mongoose';
 import User, { IUser } from '@/lib/db/models/User';
 
 export async function POST(request: NextRequest) {
+  const requestId = `REG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const startTime = Date.now();
+  
   try {
-    console.log('[AUTH] Registration request received');
+    console.log(`[${requestId}] ========== Registration Request START ==========`);
+    console.log(`[${requestId}] Timestamp: ${new Date().toISOString()}`);
     
     // Rate limiting - stricter for registration
     const rateLimitResult = rateLimit(request, RATE_LIMITS.REGISTER);
     if (!rateLimitResult.allowed) {
-      console.log('[AUTH] Rate limit exceeded');
+      const duration = Date.now() - startTime;
+      console.log(`[${requestId}] ❌ Rate limit exceeded (${duration}ms)`);
       const response = NextResponse.json(
         { success: false, error: RATE_LIMITS.REGISTER.message },
         { status: 429 }
@@ -26,7 +31,8 @@ export async function POST(request: NextRequest) {
     // CSRF protection
     const csrfValid = await validateCSRFToken(request);
     if (!csrfValid) {
-      console.log('[AUTH] CSRF validation failed');
+      const duration = Date.now() - startTime;
+      console.log(`[${requestId}] ❌ CSRF validation failed (${duration}ms)`);
       return addSecurityHeaders(
         NextResponse.json(
           { success: false, error: 'Invalid security token. Please refresh the page and try again.' },
@@ -36,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('[AUTH] Registration body received:', { 
+    console.log(`[${requestId}] Request body:`, { 
       username: body.username, 
       email: body.email,
       hasPassword: !!body.password,
@@ -46,7 +52,8 @@ export async function POST(request: NextRequest) {
     // Validate and sanitize input
     const validation = validateAndSanitize(registerSchema, body);
     if (!validation.success) {
-      console.log('[AUTH] Validation failed:', validation.error);
+      const duration = Date.now() - startTime;
+      console.log(`[${requestId}] ❌ Validation failed: ${validation.error} (${duration}ms)`);
       return addSecurityHeaders(
         NextResponse.json(
           { success: false, error: validation.error },
@@ -64,23 +71,24 @@ export async function POST(request: NextRequest) {
     // Auto-generate email as <lowercased_username>@ramn.online
     const sanitizedEmail = `${sanitizedUsername}@ramn.online`;
 
-    console.log('[AUTH] Attempting database connection...');
+    console.log(`[${requestId}] Attempting database connection...`);
     try {
       await dbConnect();
-      console.log('[AUTH] Database connected successfully');
+      console.log(`[${requestId}] ✅ Database connected successfully`);
     } catch (dbError: any) {
-      console.error('[AUTH] Database connection error:', dbError);
-      console.error('[AUTH] Error message:', dbError.message);
+      const duration = Date.now() - startTime;
+      console.error(`[${requestId}] ❌ Database connection error (${duration}ms):`, dbError.message);
+      console.error(`[${requestId}] Error stack:`, dbError.stack);
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Database connection failed. Please check your MongoDB configuration.' },
+          { success: false, error: 'Server error: Database connection failed. Please try again later.' },
           { status: 500 }
         )
       );
     }
 
     // Check if user already exists (use case-insensitive comparison)
-    console.log('[AUTH] Checking for existing user...');
+    console.log(`[${requestId}] Checking for existing user...`);
     try {
       const existingUser = await User.findOne({
         $or: [
@@ -91,43 +99,48 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingUser) {
-        console.log('[AUTH] User already exists');
+        const duration = Date.now() - startTime;
+        console.log(`[${requestId}] ❌ User already exists (${duration}ms)`);
         // Don't reveal which field is taken (security best practice)
         return addSecurityHeaders(
           NextResponse.json(
-            { success: false, error: 'Username, screen name, or email already exists' },
+            { success: false, error: 'Username, screen name, or email already exists. Please try a different one.' },
             { status: 400 }
           )
         );
       }
+      console.log(`[${requestId}] ✅ No existing user found`);
     } catch (queryError: any) {
-      console.error('[AUTH] Query error:', queryError);
+      const duration = Date.now() - startTime;
+      console.error(`[${requestId}] ❌ Query error (${duration}ms):`, queryError.message);
+      console.error(`[${requestId}] Error stack:`, queryError.stack);
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Failed to check existing users' },
+          { success: false, error: 'Server error: Failed to check existing users. Please try again later.' },
           { status: 500 }
         )
       );
     }
 
     // Hash password with bcrypt (cost factor 12 for better security)
-    console.log('[AUTH] Hashing password...');
+    console.log(`[${requestId}] Hashing password...`);
     let passwordHash: string;
     try {
       passwordHash = await bcrypt.hash(password, 12);
-      console.log('[AUTH] Password hashed successfully');
+      console.log(`[${requestId}] ✅ Password hashed successfully`);
     } catch (hashError: any) {
-      console.error('[AUTH] Password hashing error:', hashError);
+      const duration = Date.now() - startTime;
+      console.error(`[${requestId}] ❌ Password hashing error (${duration}ms):`, hashError.message);
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Failed to process password' },
+          { success: false, error: 'Server error: Failed to process password. Please try again later.' },
           { status: 500 }
         )
       );
     }
     
     // Create user
-    console.log('[AUTH] Creating user...');
+    console.log(`[${requestId}] Creating user in database...`);
     try {
       const user = await User.create({
         username: sanitizedUsername,
@@ -137,7 +150,13 @@ export async function POST(request: NextRequest) {
         status: 'offline',
       }) as IUser;
 
-      console.log('[AUTH] User created successfully:', { id: user._id, username: user.username });
+      const duration = Date.now() - startTime;
+      console.log(`[${requestId}] ✅ User created successfully (${duration}ms):`, { 
+        id: String(user._id), 
+        username: user.username,
+        screenName: user.screenName,
+        email: user.email
+      });
 
       const response = NextResponse.json({
         success: true,
@@ -149,27 +168,29 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      console.log(`[${requestId}] ========== Registration Request SUCCESS ==========\n`);
       return addSecurityHeaders(response);
     } catch (createError: any) {
-      console.error('[AUTH] User creation error:', createError);
-      console.error('[AUTH] Error code:', createError.code);
-      console.error('[AUTH] Error message:', createError.message);
+      const duration = Date.now() - startTime;
+      console.error(`[${requestId}] ❌ User creation error (${duration}ms):`, createError.message);
+      console.error(`[${requestId}] Error code:`, createError.code);
+      console.error(`[${requestId}] Error stack:`, createError.stack);
       
       // Handle duplicate key errors specifically
       if (createError.code === 11000) {
+        console.error(`[${requestId}] Duplicate key error - user already exists`);
         return addSecurityHeaders(
           NextResponse.json(
-            { success: false, error: 'Username, screen name, or email already exists' },
+            { success: false, error: 'Username, screen name, or email already exists. Please try a different one.' },
             { status: 400 }
           )
         );
       }
       
-      // Return more specific error for debugging (in development)
-      const errorMessage = process.env.NODE_ENV === 'development' 
-        ? `Failed to create user: ${createError.message}`
-        : 'Failed to register user';
+      // Return user-friendly error message
+      const errorMessage = 'Server error: Failed to create user account. Please try again later.';
       
+      console.log(`[${requestId}] ========== Registration Request FAILED ==========\n`);
       return addSecurityHeaders(
         NextResponse.json(
           { success: false, error: errorMessage },
@@ -178,14 +199,14 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error: any) {
-    console.error('[AUTH] Registration error:', error);
-    console.error('[AUTH] Error stack:', error.stack);
+    const duration = Date.now() - startTime;
+    console.error(`[${requestId}] ❌ Unexpected registration error (${duration}ms):`, error.message);
+    console.error(`[${requestId}] Error stack:`, error.stack);
     
-    // Return more specific error for debugging
-    const errorMessage = process.env.NODE_ENV === 'development'
-      ? `Registration failed: ${error.message}`
-      : 'Failed to register user';
+    // Return user-friendly error message
+    const errorMessage = 'Server error: An unexpected error occurred. Please try again later.';
     
+    console.log(`[${requestId}] ========== Registration Request FAILED ==========\n`);
     return addSecurityHeaders(
       NextResponse.json(
         { success: false, error: errorMessage },
