@@ -425,52 +425,96 @@ export default function BuddyList() {
     }); // Show ALL groups, even if empty - they're the same groups as List Setup
 
     return (
-      <div className="space-y-1">
+      <div style={{ padding: '1px' }}>
         {/* Show all buddies in their assigned groups */}
         {groupsWithBuddies.map((group) => {
           const isExpanded = expandedGroups.has(group.id);
+          const totalBuddies = group.allBuddies.length;
+          const onlineCount = group.onlineBuddies.length;
           return (
-            <div key={group.id}>
+            <div key={group.id} style={{ marginBottom: '1px' }}>
+              {/* Group Header - Yellow Highlighter Behind Text Only */}
               <div
-                className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-blue-100 rounded"
-                style={{ backgroundColor: '#cce5ff' }}
+                className="cursor-pointer"
                 onClick={() => toggleGroup(group.id)}
+                style={{
+                  padding: '2px 4px',
+                  minHeight: '18px',
+                }}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">{isExpanded ? '▼' : '▶'}</span>
-                  <span className="text-sm font-semibold text-gray-800">{group.name}</span>
-                  <span className="text-xs text-gray-500">
-                    ({group.onlineBuddies.length} online{group.offlineBuddies.length > 0 ? `, ${group.offlineBuddies.length} offline` : ''})
+                <div className="flex items-center" style={{ gap: '4px' }}>
+                  {/* Disclosure Triangle */}
+                  <span style={{ fontSize: '10px', color: '#000', width: '12px' }}>
+                    {isExpanded ? '▼' : '►'}
+                  </span>
+                  {/* Group Name with Yellow Highlight Behind Text Only */}
+                  <span
+                    className="font-bold"
+                    style={{
+                      fontSize: '11px',
+                      color: '#000000',
+                      backgroundColor: AIM_YELLOW_HIGHLIGHT,
+                      padding: '0 2px',
+                      lineHeight: '1.3',
+                    }}
+                  >
+                    {group.name} ({onlineCount}/{totalBuddies})
                   </span>
                 </div>
               </div>
               {isExpanded && (
-                <div className="ml-4 mt-1 space-y-0.5">
-                  {/* Show online buddies first */}
+                <div style={{ marginLeft: '16px', paddingTop: '1px' }}>
+                  {/* Show online buddies first - Plain black text, no status dots */}
                   {group.onlineBuddies.map((buddy) => (
                     <div
                       key={buddy.id}
-                      className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                      className="cursor-pointer"
                       onDoubleClick={() => handleBuddyDoubleClick(buddy)}
                       onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
+                      style={{
+                        padding: '1px 4px',
+                        fontSize: '11px',
+                        color: '#000000',
+                        lineHeight: '1.4',
+                        minHeight: '16px',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                      }}
                     >
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(buddy.status)}`} />
-                      <span className="text-sm text-gray-800">{buddy.username}</span>
+                      {buddy.username}
                       {buddy.awayStatus === 'away' && buddy.awayMessage && (
-                        <span className="text-xs text-gray-500 italic">({buddy.awayMessage})</span>
+                        <span style={{ color: AIM_DARK_GREY, fontSize: '10px', fontStyle: 'italic' }}>
+                          {' '}({buddy.awayMessage})
+                        </span>
                       )}
                     </div>
                   ))}
-                  {/* Show offline buddies in same group */}
+                  {/* Show offline buddies in same group - Grey text */}
                   {group.offlineBuddies.map((buddy) => (
                     <div
                       key={buddy.id}
-                      className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                      className="cursor-pointer"
                       onDoubleClick={() => handleBuddyDoubleClick(buddy)}
                       onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
+                      style={{
+                        padding: '1px 4px',
+                        fontSize: '11px',
+                        color: AIM_DARK_GREY,
+                        lineHeight: '1.4',
+                        minHeight: '16px',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                      }}
                     >
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(buddy.status)}`} />
-                      <span className="text-sm text-gray-600">{buddy.username}</span>
+                      {buddy.username}
                     </div>
                   ))}
                 </div>
@@ -479,31 +523,58 @@ export default function BuddyList() {
           );
         })}
 
-        {/* Offline Buddies group at the bottom - shows ALL offline buddies */}
+        {/* Offline Buddies group at the bottom - Grey, No Yellow Highlight */}
         {offlineBuddies.length > 0 && (
-          <div>
+          <div style={{ marginTop: '2px' }}>
             <div
-              className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-gray-200 rounded mt-2"
-              style={{ backgroundColor: '#e0e0e0' }}
+              className="cursor-pointer"
               onClick={() => toggleGroup('offline')}
+              style={{
+                padding: '2px 4px',
+                minHeight: '18px',
+              }}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs">{expandedGroups.has('offline') ? '▼' : '▶'}</span>
-                <span className="text-sm font-semibold text-gray-800">Offline Buddies</span>
-                <span className="text-xs text-gray-500">({offlineBuddies.length})</span>
+              <div className="flex items-center" style={{ gap: '4px' }}>
+                {/* Disclosure Triangle */}
+                <span style={{ fontSize: '10px', color: AIM_DARK_GREY, width: '12px' }}>
+                  {expandedGroups.has('offline') ? '▼' : '►'}
+                </span>
+                {/* Offline Group Name - Grey, No Yellow Highlight */}
+                <span
+                  className="font-bold"
+                  style={{
+                    fontSize: '11px',
+                    color: AIM_DARK_GREY,
+                    lineHeight: '1.3',
+                  }}
+                >
+                  Offline ({offlineBuddies.length})
+                </span>
               </div>
             </div>
             {expandedGroups.has('offline') && (
-              <div className="ml-4 mt-1 space-y-0.5">
+              <div style={{ marginLeft: '16px', paddingTop: '1px' }}>
                 {offlineBuddies.map((buddy) => (
                   <div
                     key={buddy.id}
-                    className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                    className="cursor-pointer"
                     onDoubleClick={() => handleBuddyDoubleClick(buddy)}
                     onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
+                    style={{
+                      padding: '1px 4px',
+                      fontSize: '11px',
+                      color: AIM_DARK_GREY,
+                      lineHeight: '1.4',
+                      minHeight: '16px',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                    }}
                   >
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(buddy.status)}`} />
-                    <span className="text-sm text-gray-600">{buddy.username}</span>
+                    {buddy.username}
                   </div>
                 ))}
               </div>
@@ -514,20 +585,36 @@ export default function BuddyList() {
     );
   };
 
-  // Render groups for List Setup tab
+  // Render groups for List Setup tab - AIM Style
   const renderSetupTab = () => {
     return (
-      <div className="space-y-2">
-        <div className="flex gap-2">
+      <div style={{ padding: '2px' }}>
+        <div className="flex gap-1" style={{ marginBottom: '4px' }}>
           <button
             onClick={handleAddGroup}
-            className="flex-1 px-2 py-1 text-sm bg-blue-200 text-blue-900 rounded hover:bg-blue-300"
+            className="px-2 py-1 text-xs font-semibold border border-gray-400"
+            style={{
+              backgroundColor: '#E0E0E0',
+              borderTop: '2px solid #FFFFFF',
+              borderLeft: '2px solid #FFFFFF',
+              borderRight: '2px solid #808080',
+              borderBottom: '2px solid #808080',
+              fontSize: '10px',
+            }}
           >
             + Add Group
           </button>
           <button
             onClick={() => setShowAddBuddyModal(true)}
-            className="flex-1 px-2 py-1 text-sm bg-green-200 text-green-900 rounded hover:bg-green-300"
+            className="px-2 py-1 text-xs font-semibold border border-gray-400"
+            style={{
+              backgroundColor: '#E0E0E0',
+              borderTop: '2px solid #FFFFFF',
+              borderLeft: '2px solid #FFFFFF',
+              borderRight: '2px solid #808080',
+              borderBottom: '2px solid #808080',
+              fontSize: '10px',
+            }}
           >
             + Add Buddy
           </button>
@@ -537,29 +624,59 @@ export default function BuddyList() {
           const isExpanded = expandedGroups.has(group.id);
 
           return (
-            <div key={group.id}>
+            <div key={group.id} style={{ marginBottom: '1px' }}>
+              {/* Group Header - Yellow Highlighter Behind Text Only */}
               <div
-                className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-blue-100 rounded"
-                style={{ backgroundColor: '#cce5ff' }}
+                className="cursor-pointer"
                 onClick={() => toggleGroup(group.id)}
                 onContextMenu={(e) => handleGroupRightClick(e, group)}
+                style={{
+                  padding: '2px 4px',
+                  minHeight: '18px',
+                }}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">{isExpanded ? '▼' : '▶'}</span>
-                  <span className="text-sm font-semibold text-gray-800">{group.name}</span>
-                  <span className="text-xs text-gray-500">({groupBuddies.length})</span>
+                <div className="flex items-center" style={{ gap: '4px' }}>
+                  {/* Disclosure Triangle */}
+                  <span style={{ fontSize: '10px', color: '#000', width: '12px' }}>
+                    {isExpanded ? '▼' : '►'}
+                  </span>
+                  {/* Group Name with Yellow Highlight Behind Text Only */}
+                  <span
+                    className="font-bold"
+                    style={{
+                      fontSize: '11px',
+                      color: '#000000',
+                      backgroundColor: AIM_YELLOW_HIGHLIGHT,
+                      padding: '0 2px',
+                      lineHeight: '1.3',
+                    }}
+                  >
+                    {group.name} ({groupBuddies.length})
+                  </span>
                 </div>
               </div>
               {isExpanded && (
-                <div className="ml-4 mt-1 space-y-0.5">
+                <div style={{ marginLeft: '16px', paddingTop: '1px' }}>
                   {groupBuddies.map((buddy) => (
                     <div
                       key={buddy.id}
-                      className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded"
+                      className="cursor-pointer"
                       onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
+                      style={{
+                        padding: '1px 4px',
+                        fontSize: '11px',
+                        color: '#000000',
+                        lineHeight: '1.4',
+                        minHeight: '16px',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                      }}
                     >
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(buddy.status)}`} />
-                      <span className="text-sm text-gray-800">{buddy.username}</span>
+                      {buddy.username}
                     </div>
                   ))}
                 </div>
@@ -571,35 +688,98 @@ export default function BuddyList() {
     );
   };
 
+  // AIM Color Palette
+  const AIM_YELLOW_HIGHLIGHT = '#FFF68F';
+  const AIM_BORDER = '#A0A0A0';
+  const AIM_DARK_BORDER = '#404040';
+  const AIM_GREY = '#E5E5E5';
+  const AIM_LIGHT_GREY = '#C0C0C0';
+  const AIM_DARK_GREY = '#808080';
+
   return (
     <>
-      <div className="h-full w-full flex flex-col" style={{ backgroundColor: '#e6f2ff' }}>
-        {/* Tabs */}
-        <div className="flex border-b-2 border-blue-400" style={{ background: 'linear-gradient(to bottom, #0066cc, #4a0080)' }}>
+      <div className="h-full w-full flex flex-col" style={{ 
+        backgroundColor: '#E5E5E5',
+        border: `1px solid ${AIM_DARK_BORDER}`,
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '11px',
+        lineHeight: '1.2',
+      }}>
+        {/* AIM Banner - Dark Blue Gradient */}
+        <div 
+          className="flex items-center justify-center px-3"
+          style={{
+            height: '70px',
+            background: 'linear-gradient(to bottom, #003366, #001a33)',
+            borderBottom: `1px solid ${AIM_DARK_BORDER}`,
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/logo-ramen-online.png"
+              alt="Ramen Online"
+              style={{ height: '50px', width: 'auto' }}
+              onError={(e) => {
+                // Fallback if image doesn't exist
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <div className="text-white" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+              Ramen Online Instant Messenger
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs - Win95 3D Style */}
+        <div className="flex" style={{ 
+          borderBottom: `1px solid ${AIM_DARK_GREY}`,
+          backgroundColor: AIM_GREY,
+        }}>
           <button
             onClick={() => setActiveTab('online')}
-            className={`px-4 py-2 text-sm font-semibold ${
-              activeTab === 'online'
-                ? 'bg-blue-600 text-white border-b-2 border-white'
-                : 'text-blue-200 hover:text-white'
-            }`}
+            className="px-4 py-1.5 text-xs font-bold"
+            style={{
+              backgroundColor: activeTab === 'online' ? '#E0E0E0' : AIM_LIGHT_GREY,
+              color: activeTab === 'online' ? '#000000' : AIM_DARK_GREY,
+              borderTop: activeTab === 'online' ? `2px solid #FFFFFF` : `2px solid ${AIM_DARK_GREY}`,
+              borderLeft: activeTab === 'online' ? `2px solid #FFFFFF` : `2px solid ${AIM_DARK_GREY}`,
+              borderRight: activeTab === 'online' ? `2px solid ${AIM_DARK_GREY}` : `2px solid #FFFFFF`,
+              borderBottom: activeTab === 'online' ? `none` : `2px solid ${AIM_DARK_GREY}`,
+              marginRight: '2px',
+              fontSize: '10px',
+            }}
           >
             Online
           </button>
           <button
             onClick={() => setActiveTab('setup')}
-            className={`px-4 py-2 text-sm font-semibold ${
-              activeTab === 'setup'
-                ? 'bg-blue-600 text-white border-b-2 border-white'
-                : 'text-blue-200 hover:text-white'
-            }`}
+            className="px-4 py-1.5 text-xs font-bold"
+            style={{
+              backgroundColor: activeTab === 'setup' ? '#E0E0E0' : AIM_LIGHT_GREY,
+              color: activeTab === 'setup' ? '#000000' : AIM_DARK_GREY,
+              borderTop: activeTab === 'setup' ? `2px solid #FFFFFF` : `2px solid ${AIM_DARK_GREY}`,
+              borderLeft: activeTab === 'setup' ? `2px solid #FFFFFF` : `2px solid ${AIM_DARK_GREY}`,
+              borderRight: activeTab === 'setup' ? `2px solid ${AIM_DARK_GREY}` : `2px solid #FFFFFF`,
+              borderBottom: activeTab === 'setup' ? `none` : `2px solid ${AIM_DARK_GREY}`,
+              fontSize: '10px',
+            }}
           >
             List Setup
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto retro-scrollbar p-2">
+        {/* Content - White Buddy List Area with Inset Border */}
+        <div 
+          className="flex-1 overflow-y-auto aim-scrollbar"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: `inset 1px solid ${AIM_BORDER}`,
+            margin: '2px',
+            padding: '2px',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '11px',
+          }}
+        >
           {activeTab === 'online' ? renderOnlineTab() : renderSetupTab()}
         </div>
 

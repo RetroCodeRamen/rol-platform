@@ -50,6 +50,40 @@
 
 /* Retro scrollbar styling */
 @layer utilities {
+  /* Win95-style scrollbar for AIM Buddy List */
+  .aim-scrollbar::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+  }
+  .aim-scrollbar::-webkit-scrollbar-track {
+    background: #E5E5E5;
+    border: 1px inset #A0A0A0;
+  }
+  .aim-scrollbar::-webkit-scrollbar-thumb {
+    background: #C0C0C0;
+    border: 1px outset #A0A0A0;
+    border-radius: 0;
+  }
+  .aim-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #A0A0A0;
+  }
+  .aim-scrollbar::-webkit-scrollbar-button {
+    background: #C0C0C0;
+    border: 1px outset #A0A0A0;
+    height: 16px;
+    width: 16px;
+  }
+  .aim-scrollbar::-webkit-scrollbar-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 4 L4 0 L8 4' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .aim-scrollbar::-webkit-scrollbar-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0 L4 4 L8 0' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
   .retro-scrollbar::-webkit-scrollbar {
     width: 16px;
     height: 16px;
