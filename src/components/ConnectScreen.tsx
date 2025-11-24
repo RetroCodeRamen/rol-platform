@@ -404,11 +404,12 @@ export default function ConnectScreen() {
     };
 
     // Simulate connection steps - store in module-level to persist across remounts
-    // console.log(`[${flowId}] Setting up step interval...`);
+    console.log(`[${flowId}] Setting up step interval...`);
     const stepInterval = setInterval(() => {
-      // console.log(`[${flowId}] Step interval tick - current step will advance`);
+      console.log(`[${flowId}] Step interval tick - current step will advance`);
       setCurrentStep((prev) => {
         const nextStep = prev + 1;
+        console.log(`[${flowId}] Step advancing: ${prev} -> ${nextStep} (${DIALUP_STEPS[nextStep] || 'END'})`);
         // console.log(`[${flowId}] Step advancing: ${prev} -> ${nextStep} (${DIALUP_STEPS[nextStep] || 'END'})`);
         
         // Add log entry for each step
@@ -418,15 +419,15 @@ export default function ConnectScreen() {
         
             // If we've reached the "Verifying user..." step, attempt authentication
             if (!loginAttemptedRef.current && nextStep === VERIFY_USER_STEP_INDEX) {
-              // console.log(`[${flowId}] ✅ Reached VERIFY_USER_STEP_INDEX (${VERIFY_USER_STEP_INDEX}) - triggering auth`);
+              console.log(`[${flowId}] ✅ Reached VERIFY_USER_STEP_INDEX (${VERIFY_USER_STEP_INDEX}) - triggering auth`);
               loginAttemptedRef.current = true;
               const authStepId = `AUTH-STEP-${Date.now()}`;
-              // console.log(`\n[${authStepId}] ========== AUTHENTICATION STEP TRIGGERED ==========`);
-              // console.log(`[${authStepId}] Step index: ${VERIFY_USER_STEP_INDEX} (Verifying user...)`);
-              // console.log(`[${authStepId}] Is new user: ${isNewUser}`);
-              // console.log(`[${authStepId}] Username: ${loginUsername}`);
-              // console.log(`[${authStepId}] Has password: ${!!loginPassword}`);
-              // console.log(`[${authStepId}] Has email: ${!!loginEmail}`);
+              console.log(`\n[${authStepId}] ========== AUTHENTICATION STEP TRIGGERED ==========`);
+              console.log(`[${authStepId}] Step index: ${VERIFY_USER_STEP_INDEX} (Verifying user...)`);
+              console.log(`[${authStepId}] Is new user: ${isNewUser}`);
+              console.log(`[${authStepId}] Username: ${loginUsername}`);
+              console.log(`[${authStepId}] Has password: ${!!loginPassword}`);
+              console.log(`[${authStepId}] Has email: ${!!loginEmail}`);
               
               // Perform authentication
               const performAuth = async () => {
