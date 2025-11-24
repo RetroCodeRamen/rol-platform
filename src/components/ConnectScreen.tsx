@@ -459,8 +459,8 @@ export default function ConnectScreen() {
                       console.error(`[${authStepId}] Error stack:`, registerError.stack);
                       // Show error in log before redirecting
                       addLogEntry(`Error: ${registerError.message}`);
-                      // Wait a bit so user can see the error
-                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      // Wait longer so user can see the error (10 seconds)
+                      await new Promise(resolve => setTimeout(resolve, 10000));
                       throw registerError;
                     }
                   } else {
@@ -481,8 +481,8 @@ export default function ConnectScreen() {
                       console.error(`[${loginId}] Stack: ${loginError.stack}`);
                       // Show error in log before redirecting
                       addLogEntry(`Error: ${loginError.message}`);
-                      // Wait a bit so user can see the error
-                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      // Wait longer so user can see the error (10 seconds)
+                      await new Promise(resolve => setTimeout(resolve, 10000));
                       throw loginError; // Re-throw to be caught by outer try-catch
                     }
                     
@@ -678,6 +678,18 @@ export default function ConnectScreen() {
         </div>
 
         <div className="space-y-4">
+          {/* Error Display - Show prominently if there's an error */}
+          {loginErrorRef.current && (
+            <div className="bg-red-100 border-4 border-red-500 rounded p-4 animate-pulse">
+              <p className="text-lg font-bold text-red-800 text-center">
+                ⚠️ Error: {loginErrorRef.current}
+              </p>
+              <p className="text-sm text-red-600 text-center mt-2">
+                This message will stay visible for 10 seconds...
+              </p>
+            </div>
+          )}
+          
           {/* Connection Status */}
           <div className="bg-gray-100 border-2 border-gray-400 rounded p-4 min-h-[100px] flex items-center justify-center">
             <p className="text-lg font-semibold text-gray-800">
