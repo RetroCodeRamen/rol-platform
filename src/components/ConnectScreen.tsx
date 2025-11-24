@@ -43,6 +43,7 @@ export default function ConnectScreen() {
   const [progress, setProgress] = useState(0);
   const [connectionLog, setConnectionLog] = useState<string[]>([]);
   const [navigationError, setNavigationError] = useState<string | null>(null);
+  const [displayError, setDisplayError] = useState<string | null>(null);
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const setCurrentUser = useAppStore((state) => state.setCurrentUser);
@@ -520,6 +521,7 @@ export default function ConnectScreen() {
                     // console.error(`[${verifyId}] This might indicate cookies are not being set properly`);
                     // console.error(`[${verifyId}] ================================================\n`);
                     loginErrorRef.current = 'Session creation failed. Please try again.';
+                    setDisplayError('Session creation failed. Please try again.');
                   }
                 } catch (err: any) {
                   console.error(`[${authStepId}] ❌ Authentication error:`, err.message);
@@ -679,10 +681,10 @@ export default function ConnectScreen() {
 
         <div className="space-y-4">
           {/* Error Display - Show prominently if there's an error */}
-          {loginErrorRef.current && (
+          {displayError && (
             <div className="bg-red-100 border-4 border-red-500 rounded p-4 animate-pulse">
               <p className="text-lg font-bold text-red-800 text-center">
-                ⚠️ Error: {loginErrorRef.current}
+                ⚠️ Error: {displayError}
               </p>
               <p className="text-sm text-red-600 text-center mt-2">
                 This message will stay visible for 10 seconds...
