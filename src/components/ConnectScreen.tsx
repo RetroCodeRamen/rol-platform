@@ -200,6 +200,10 @@ export default function ConnectScreen() {
     // console.log(`[${mountId}] STEP 2.0 RESULT: ${initialPendingLogin ? 'FOUND - will process' : 'NOT FOUND - retry scheduled or checking session'}`);
     
     const processLoginFlow = (pendingLogin: PendingLogin) => {
+      // Clear any previous errors
+      setDisplayError(null);
+      loginErrorRef.current = null;
+      
       // Prevent double-processing in React StrictMode
       if (isProcessingRef.current && loginAttemptedRef.current) {
         // console.log('[ConnectScreen] Already processing login flow, skipping duplicate call');
