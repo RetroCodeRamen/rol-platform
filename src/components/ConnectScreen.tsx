@@ -540,6 +540,7 @@ export default function ConnectScreen() {
                   }
                   
                   loginErrorRef.current = errorMessage;
+                  setDisplayError(errorMessage); // Update state to trigger re-render
                   console.error(`[${authStepId}] Setting error message: ${errorMessage}`);
                 }
           };
