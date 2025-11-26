@@ -151,8 +151,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const newSettings = { ...get().userSettings, ...settings };
     set({ userSettings: newSettings });
     // Persist to localStorage
-    if (get().currentUser && typeof window !== 'undefined') {
-      localStorage.setItem(`rol-settings-${get().currentUser.id}`, JSON.stringify(newSettings));
+    const currentUser = get().currentUser;
+    if (currentUser && typeof window !== 'undefined') {
+      localStorage.setItem(`rol-settings-${currentUser.id}`, JSON.stringify(newSettings));
     }
   },
 
