@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/state/store';
+import { AppMessageHandler } from '@/lib/messaging/AppMessageHandler';
 import { chatService } from '@/services/ChatService';
 import { notificationService } from '@/services/NotificationService';
 import { getSocket } from '@/lib/websocket/client';
