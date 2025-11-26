@@ -86,24 +86,18 @@ export default function IMWindow({ window }: IMWindowProps) {
   useEffect(() => {
     if (!participant) return;
     
-    // Clear the unread IM flag for this participant in buddy list
-    const { setBuddies, buddies } = useAppStore.getState();
-    const hasUnread = buddies.some((b) => b.username === participant && b.hasUnreadIM);
+    // Clear the unread IM flag for this participant
+    const { markIMAsRead } = useAppStore.getState();
+    markIMAsRead(participant);
     
-    if (hasUnread) {
-      setBuddies(
-        buddies.map((buddy) => {
-          if (buddy.username === participant) {
-            return {
-              ...buddy,
-              hasUnreadIM: false,
-            };
-          }
-          return buddy;
-        })
-      );
+    // Dispatch IM_READ event via AppMessageHandler
+    if (participant && currentUser) {
+      dispatchMessage('IM_READ', {
+        senderUsername: participant,
+        recipientUsername: currentUser.username,
+      });
     }
-  }, [participant]);
+  }, [participant, currentUser]);
 
   // Set up WebSocket listeners for real-time messaging
   useEffect(() => {
