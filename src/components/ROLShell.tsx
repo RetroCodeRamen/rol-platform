@@ -231,7 +231,7 @@ export default function ROLShell() {
       const { subscribeToMessage } = await import('@/lib/messaging/AppMessageHandler');
       const closeWindow = useAppStore.getState().closeWindow;
 
-      const unsubscribe = subscribeToMessage('SYSTEM_ALERT', (payload: { message: string; title?: string }) => {
+      const unsubscribe = subscribeToMessage('SYSTEM_ALERT', (payload: any) => {
         const { message, title = 'Alert' } = payload;
         
         // Open a dialog window for the alert (slightly larger so content & buttons always fit)
