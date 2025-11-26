@@ -170,12 +170,8 @@ export default function ROLShell() {
     const setupShortcutHandler = async () => {
       const { subscribeToMessage, dispatchMessage } = await import('@/lib/messaging/AppMessageHandler');
 
-      unsubscribe = subscribeToMessage('SHORTCUT_CREATED', async (payload: {
-        windowId: string;
-        windowType: string;
-        title: string;
-        url?: string;
-      }) => {
+      unsubscribe = subscribeToMessage('SHORTCUT_CREATED', async (payload: any) => {
+        const { windowId, windowType, title, url } = payload;
         console.log('[ROLShell] SHORTCUT_CREATED received:', payload);
         try {
           const response = await fetch('/api/favorites', {
