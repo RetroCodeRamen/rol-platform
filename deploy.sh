@@ -62,10 +62,19 @@ sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SER
         apt-get update && apt-get install -y git
     fi
     
+    # Fix git ownership issue (if repository exists)
+    if [ -d "\$APP_DIR" ]; then
+        echo "🔧 Fixing git ownership..."
+        git config --global --add safe.directory "\$APP_DIR" || true
+    fi
+    
     # Clone or update repository from GitHub
     if [ -d "\$APP_DIR" ]; then
         echo "🔄 Updating existing repository from GitHub..."
         cd "\$APP_DIR"
+        
+        # Fix ownership for this specific directory
+        git config --global --add safe.directory "\$APP_DIR" || true
         
         # Stash any local changes (shouldn't be any, but just in case)
         git stash || true
