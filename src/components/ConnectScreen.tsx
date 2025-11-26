@@ -462,11 +462,21 @@ export default function ConnectScreen() {
                     } catch (registerError: any) {
                       console.error(`[${authStepId}] ❌ Registration failed:`, registerError.message);
                       console.error(`[${authStepId}] Error stack:`, registerError.stack);
+                      // Stop intervals immediately on error
+                      if (intervalsRef.current.step) clearInterval(intervalsRef.current.step);
+                      if (intervalsRef.current.progress) clearInterval(intervalsRef.current.progress);
+                      if (intervalsRef.current.timeout) clearTimeout(intervalsRef.current.timeout);
+                      if (globalIntervals.step) clearInterval(globalIntervals.step);
+                      if (globalIntervals.progress) clearInterval(globalIntervals.progress);
+                      if (globalIntervals.timeout) clearTimeout(globalIntervals.timeout);
                       // Show error in log before redirecting
                       addLogEntry(`Error: ${registerError.message}`);
-                      // Wait longer so user can see the error (10 seconds)
-                      await new Promise(resolve => setTimeout(resolve, 10000));
-                      throw registerError;
+                      // Store error and navigate immediately
+                      loginErrorRef.current = registerError.message;
+                      isProcessingRef.current = false;
+                      isProcessingLogin = false;
+                      navigateBackWithError(registerError.message);
+                      return; // Exit early, don't continue
                     }
                   } else {
                     // Login existing user
@@ -484,11 +494,21 @@ export default function ConnectScreen() {
                       console.error(`[${loginId}] ❌ Login API call FAILED:`);
                       console.error(`[${loginId}] Error: ${loginError.message}`);
                       console.error(`[${loginId}] Stack: ${loginError.stack}`);
+                      // Stop intervals immediately on error
+                      if (intervalsRef.current.step) clearInterval(intervalsRef.current.step);
+                      if (intervalsRef.current.progress) clearInterval(intervalsRef.current.progress);
+                      if (intervalsRef.current.timeout) clearTimeout(intervalsRef.current.timeout);
+                      if (globalIntervals.step) clearInterval(globalIntervals.step);
+                      if (globalIntervals.progress) clearInterval(globalIntervals.progress);
+                      if (globalIntervals.timeout) clearTimeout(globalIntervals.timeout);
                       // Show error in log before redirecting
                       addLogEntry(`Error: ${loginError.message}`);
-                      // Wait longer so user can see the error (10 seconds)
-                      await new Promise(resolve => setTimeout(resolve, 10000));
-                      throw loginError; // Re-throw to be caught by outer try-catch
+                      // Store error and navigate immediately
+                      loginErrorRef.current = loginError.message;
+                      isProcessingRef.current = false;
+                      isProcessingLogin = false;
+                      navigateBackWithError(loginError.message);
+                      return; // Exit early, don't continue
                     }
                     
                     console.log(`[${loginId}] =========================================\n`);
