@@ -109,6 +109,7 @@ const DEFAULT_WINDOWS: Record<WindowType, Partial<Window>> = {
   buddyrequest: { width: 400, height: 200, x: 200, y: 200 },
   profile: { width: 500, height: 500, x: 150, y: 100 },
   settings: { width: 600, height: 500, x: 150, y: 100 },
+  favorites: { width: 600, height: 500, x: 150, y: 100 },
 };
 
 const initialState = {
