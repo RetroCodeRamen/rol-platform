@@ -29,16 +29,39 @@ git push -u origin main
 
 ## 🚀 Step 3: Deploy to Server
 
-Run the deployment script:
+Run the deployment script (automatically pulls from GitHub):
 
 ```bash
 ./deploy.sh
 ```
 
-Or manually:
+The script will:
+1. Push your local commits to GitHub (if not already pushed)
+2. SSH to the production server
+3. Pull the latest code from GitHub
+4. Install dependencies
+5. Build the application
+6. Restart the PM2 service
+
+### Manual Deployment (if needed)
+
+If you need to deploy manually:
 
 ```bash
-sshpass -p "P0pcorn!" ssh root@10.0.0.220
+ssh root@10.0.0.220
+cd /var/www/rol-platform
+git pull origin main
+npm install
+npm run build
+pm2 restart rol-platform
+```
+
+### First-Time Setup
+
+For first-time setup on a new server:
+
+```bash
+ssh root@10.0.0.220
 cd /var/www
 git clone git@github.com:RetroCodeRamen/rol-platform.git
 cd rol-platform
