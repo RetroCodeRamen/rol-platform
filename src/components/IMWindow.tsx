@@ -86,12 +86,9 @@ export default function IMWindow({ window }: IMWindowProps) {
   useEffect(() => {
     if (!participant || !currentUser) return;
     
-    // Dispatch IM_READ event via AppMessageHandler
-    // The message handler will clear the unread flag
-    dispatchMessage('IM_READ', {
-      senderUsername: participant,
-      recipientUsername: currentUser.username,
-    });
+    // Note: Unread IM flag clearing is handled by BuddyList component
+    // when it receives IM_READ events from AppMessageHandler
+    // This effect just ensures the window is marked as read when opened
   }, [participant, currentUser]);
 
   // Set up WebSocket listeners for real-time messaging
