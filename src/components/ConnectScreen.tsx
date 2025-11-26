@@ -551,21 +551,56 @@ export default function ConnectScreen() {
                   console.error(`[${authStepId}] ❌ Authentication error:`, err.message);
                   console.error(`[${authStepId}] Error stack:`, err.stack);
                   
-                  // Determine user-friendly error message
-                  let errorMessage = err.message || (isNewUser ? 'Failed to create account' : 'Invalid screen name or password');
+                  // Stop all intervals and audio immediately on error
+                  if (intervalsRef.current.step) clearInterval(intervalsRef.current.step);
+                  if (intervalsRef.current.progress) clearInterval(intervalsRef.current.progress);
+                  if (intervalsRef.current.timeout) clearTimeout(intervalsRef.current.timeout);
+                  if (globalIntervals.step) clearInterval(globalIntervals.step);
+                  if (globalIntervals.progress) clearInterval(globalIntervals.progress);
+                  if (globalIntervals.timeout) clearTimeout(globalIntervals.timeout);
                   
-                  // Provide more specific error messages
-                  if (err.message.includes('already exists')) {
+                  // Stop audio
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                  }
+                  if (globalAudioRef) {
+                    globalAudioRef.pause();
+                    globalAudioRef.currentTime = 0;
+                  }
+                  
+                  // Determine user-friendly error message
+                  let errorMessage = err.message || (isNewUser ? 'Failed to create account' : 'Invalid username or password');
+                  
+                  // Normalize error messages for consistency
+                  if (err.message.includes('Invalid credentials') || 
+                      err.message.includes('Invalid username') || 
+                      err.message.includes('Login failed: 401') ||
+                      err.message.includes('401')) {
+                    errorMessage = 'Invalid username or password';
+                  } else if (err.message.includes('already exists')) {
                     errorMessage = 'Username, screen name, or email already exists. Please try a different one.';
                   } else if (err.message.includes('Server error') || err.message.includes('Database')) {
                     errorMessage = 'Server error occurred. Please try again later.';
                   } else if (err.message.includes('Account created but login failed')) {
                     errorMessage = 'Account was created but automatic login failed. Please try logging in manually.';
+                  } else if (err.message.includes('Account temporarily locked')) {
+                    errorMessage = err.message; // Keep the lockout message as-is
                   }
                   
+                  // Set error state immediately
                   loginErrorRef.current = errorMessage;
-                  setDisplayError(errorMessage); // Update state to trigger re-render
+                  setDisplayError(errorMessage);
+                  isProcessingRef.current = false;
+                  isProcessingLogin = false;
+                  
+                  // Show error in connection log
+                  addLogEntry(`Error: ${errorMessage}`);
+                  
                   console.error(`[${authStepId}] Setting error message: ${errorMessage}`);
+                  
+                  // Navigate back immediately with error
+                  navigateBackWithError(errorMessage);
                 }
           };
 

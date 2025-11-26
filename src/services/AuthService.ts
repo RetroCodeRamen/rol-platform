@@ -210,7 +210,9 @@ export class RestAuthService implements IAuthService {
 
       if (!data.success) {
         // console.error(`[${logId}] ❌ Login failed: ${data.error}`);
-        throw new Error(data.error || 'Invalid credentials');
+        // Use the error message from the API, or default to user-friendly message
+        const errorMsg = data.error || 'Invalid username or password';
+        throw new Error(errorMsg);
       }
 
       const user: IUser = {

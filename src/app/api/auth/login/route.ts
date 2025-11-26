@@ -112,9 +112,10 @@ export async function POST(request: NextRequest) {
       await recordFailedLogin(sanitizedUsername);
       
       // Don't reveal whether username exists (security best practice)
+      // Use consistent error message that matches what the frontend expects
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Invalid credentials' },
+          { success: false, error: 'Invalid username or password' },
           { status: 401 }
         )
       );
