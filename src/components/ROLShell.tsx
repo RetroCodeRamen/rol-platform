@@ -106,7 +106,8 @@ export default function ROLShell() {
       const { subscribeToMessage } = await import('@/lib/messaging/AppMessageHandler');
       const userSettings = useAppStore.getState().userSettings;
 
-      unsubscribe = subscribeToMessage('IM_NEW_MESSAGE', ({ message }: { message: IIMMessage }) => {
+      unsubscribe = subscribeToMessage('IM_NEW_MESSAGE', (payload: any) => {
+        const message = payload.message as IIMMessage;
         // Only handle messages TO the current user
         if (message.to !== currentUser.username) return;
 
