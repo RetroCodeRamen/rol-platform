@@ -7,12 +7,16 @@ A nostalgic web-based reimplementation of classic AOL (5.0/6.0 era) as a single-
 - **Retro AOL Experience**: Recreates the look and feel of classic AOL with Windows 98-style UI
 - **Login & Connect Flow**: Authentic dial-up connection experience with sound effects
 - **Email Client**: Full-featured email interface with inbox, sent, drafts, and trash folders
-- **Instant Messaging**: Chat with buddies via IM windows
+- **Instant Messaging**: Chat with buddies via IM windows with auto-open settings
 - **Chat Rooms**: Public chat rooms for group conversations
-- **Buddy List**: See who's online and start conversations
+- **Buddy List**: See who's online, block/unblock users, and start conversations
+- **Favorites System**: Save windows/pages as favorites for quick access
+- **Theme System**: AOL 5.0 (Win95-style) and AOL 7.0-9.0 (modern) themes
 - **Channels**: Browse different content channels (News, Sports, Games, etc.)
 - **Forums**: Discussion boards with threads and replies
+- **Web Browser**: In-app browser with iframe fallback for blocked sites
 - **Sound Effects**: Classic AOL sounds ("You've got mail!", dial-up, IM notifications, etc.)
+- **Security**: CSRF protection, rate limiting, secure file uploads, account lockout
 
 ## Tech Stack
 

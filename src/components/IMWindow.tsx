@@ -6,6 +6,7 @@ import { chatService } from '@/services/ChatService';
 import { notificationService } from '@/services/NotificationService';
 import { getSocket } from '@/lib/websocket/client';
 import { SoundService } from '@/services/SoundService';
+import { dispatchMessage } from '@/lib/messaging/AppMessageHandler';
 import type { IIMMessage, IIMThread, IFileAttachment } from '@/services/ChatService';
 import type { Window } from '@/state/store';
 
@@ -80,6 +81,29 @@ export default function IMWindow({ window }: IMWindowProps) {
     scrollToBottom();
   }, [currentThread?.messages]);
 
+  // Clear unread IM flag when window is opened
+  useEffect(() => {
+    if (!participant) return;
+    
+    // Clear the unread IM flag for this participant in buddy list
+    const { setBuddies, buddies } = useAppStoreDirect.getState();
+    const hasUnread = buddies.some((b) => b.username === participant && b.hasUnreadIM);
+    
+    if (hasUnread) {
+      setBuddies(
+        buddies.map((buddy) => {
+          if (buddy.username === participant) {
+            return {
+              ...buddy,
+              hasUnreadIM: false,
+            };
+          }
+          return buddy;
+        })
+      );
+    }
+  }, [participant]);
+
   // Set up WebSocket listeners for real-time messaging
   useEffect(() => {
     if (!participant) return;
@@ -144,11 +168,17 @@ export default function IMWindow({ window }: IMWindowProps) {
       if (data.success) {
         setPendingAttachments([...pendingAttachments, data.attachment]);
       } else {
-        alert(data.error || 'Failed to upload file');
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to upload file',
+          title: 'Upload Error',
+        });
       }
     } catch (error) {
       console.error('File upload error:', error);
-      alert('Failed to upload file');
+      dispatchMessage('SYSTEM_ALERT', {
+        message: 'Failed to upload file',
+        title: 'Upload Error',
+      });
     } finally {
       setIsUploading(false);
       // Reset file input
@@ -217,16 +247,25 @@ export default function IMWindow({ window }: IMWindowProps) {
       
       const data = await response.json();
       if (data.success) {
-        alert(`${participant} has been blocked.`);
+        dispatchMessage('SYSTEM_ALERT', {
+          message: `${participant} has been blocked.`,
+          title: 'User Blocked',
+        });
         // Optionally close the IM window
         const closeWindow = useAppStore.getState().closeWindow;
         closeWindow(window.id);
       } else {
-        alert(data.error || 'Failed to block user');
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to block user',
+          title: 'Error',
+        });
       }
     } catch (error) {
       console.error('Failed to block user:', error);
-      alert('Failed to block user');
+      dispatchMessage('SYSTEM_ALERT', {
+        message: 'Failed to block user',
+        title: 'Error',
+      });
     }
   };
 

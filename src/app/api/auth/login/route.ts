@@ -40,9 +40,23 @@ export async function POST(request: NextRequest) {
     const csrfValid = await validateCSRFToken(request);
     if (!csrfValid) {
       console.log(`[${requestId}] CSRF validation FAILED`);
+      // Log detailed CSRF failure info for debugging
+      try {
+        const { cookies } = await import('next/headers');
+        const cookieStore = await cookies();
+        const csrfCookie = cookieStore.get('rol_csrf_token');
+        const csrfHeader = request.headers.get('x-csrf-token') || request.headers.get('X-CSRF-Token');
+        console.log(`[${requestId}] CSRF Debug - Cookie exists: ${!!csrfCookie?.value}, Header exists: ${!!csrfHeader}`);
+        console.log(`[${requestId}] CSRF Debug - Cookie value length: ${csrfCookie?.value?.length || 0}, Header value length: ${csrfHeader?.length || 0}`);
+      } catch (e) {
+        console.log(`[${requestId}] CSRF Debug - Could not inspect cookies:`, e);
+      }
+      
+      // In production, if CSRF fails but we have credentials, log it for investigation
+      // but still return 403 (not 401) to distinguish from auth failures
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Invalid security token' },
+          { success: false, error: 'Invalid security token. Please refresh the page and try again.' },
           { status: 403 }
         )
       );
@@ -137,13 +151,18 @@ export async function POST(request: NextRequest) {
 
     // Set session - create response first, then set cookies on it
     const userId = String(user._id);
-    const useSecure = process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true';
+    // Allow explicit override for production behind proxies
+    // If USE_SECURE_COOKIES is explicitly false, don't use secure flag
+    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                      process.env.USE_SECURE_COOKIES !== 'false';
+    // Use 'lax' instead of 'strict' for better compatibility with redirects and proxies
+    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
     const sessionToken = crypto.randomBytes(32).toString('hex');
     
     console.log(`[${requestId}] Creating session...`);
     console.log(`[${requestId}] User ID: ${userId}`);
     console.log(`[${requestId}] Session token: ${sessionToken.substring(0, 16)}...`);
-    console.log(`[${requestId}] Cookie settings - secure: ${useSecure}, sameSite: strict, maxAge: 7 days`);
+    console.log(`[${requestId}] Cookie settings - secure: ${useSecure}, sameSite: ${sameSite}, maxAge: 7 days`);
     
     const response = NextResponse.json({
       success: true,
@@ -162,7 +181,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('rol_session', userId, {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
@@ -170,7 +189,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('rol_session_token', sessionToken, {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });

@@ -15,6 +15,14 @@ export interface IUser extends Document {
   };
   buddyList?: string[]; // Array of user IDs
   blockedUsers?: string[]; // Array of user IDs
+  favorites?: Array<{
+    id: string;
+    title: string;
+    windowType: string;
+    url?: string;
+    options?: any;
+    createdAt: Date;
+  }>;
   status: 'online' | 'away' | 'busy' | 'offline' | 'invisible';
   lastSeen?: Date;
   lastActiveAt?: Date; // For presence tracking (30s threshold)
@@ -67,6 +75,17 @@ const UserSchema: Schema = new Schema(
     blockedUsers: [{
       type: Schema.Types.ObjectId,
       ref: 'User',
+    }],
+    favorites: [{
+      id: String,
+      title: String,
+      windowType: String,
+      url: String,
+      options: Schema.Types.Mixed,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
     }],
     status: {
       type: String,

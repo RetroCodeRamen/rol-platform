@@ -57,19 +57,22 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true });
     
     // Explicitly clear cookies in the response headers as well
-    const useSecure = process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true';
-    console.log(`[${requestId}] Setting empty cookies on response (secure: ${useSecure})...`);
+    // Use same configuration as login route
+    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                      process.env.USE_SECURE_COOKIES !== 'false';
+    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    console.log(`[${requestId}] Setting empty cookies on response (secure: ${useSecure}, sameSite: ${sameSite})...`);
     response.cookies.set('rol_session', '', {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 0,
       path: '/',
     });
     response.cookies.set('rol_session_token', '', {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 0,
       path: '/',
     });

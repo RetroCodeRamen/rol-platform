@@ -4,7 +4,7 @@ import type { IMessage } from '@/services/MailService';
 import type { IBuddy, IIMThread } from '@/services/ChatService';
 import { mockMessages } from './mockData';
 
-export type WindowType = 'mail' | 'im' | 'chat' | 'forums' | 'buddylist' | 'channels' | 'web' | 'welcome' | 'weather' | 'dialog' | 'buddyrequest' | 'profile' | 'settings';
+export type WindowType = 'mail' | 'im' | 'chat' | 'forums' | 'buddylist' | 'channels' | 'web' | 'welcome' | 'weather' | 'dialog' | 'buddyrequest' | 'profile' | 'settings' | 'favorites';
 
 export interface Window {
   id: string;
@@ -19,6 +19,7 @@ export interface Window {
   isMaximized?: boolean;
   participant?: string; // For IM windows - username of the other participant
   username?: string; // For profile windows - username to view
+  url?: string; // For web windows - current URL
   // Dialog-specific props
   dialogProps?: {
     message?: string;
@@ -40,10 +41,18 @@ export interface Window {
   };
 }
 
+interface UserSettings {
+  autoOpenIMs: boolean; // Auto-open new IM windows (default: true)
+}
+
 interface AppState {
   // User
   currentUser: IUser | null;
   setCurrentUser: (user: IUser | null) => void;
+  
+  // User Settings
+  userSettings: UserSettings;
+  setUserSettings: (settings: Partial<UserSettings>) => void;
 
   // Mail
   messages: IMessage[];
@@ -96,7 +105,7 @@ const DEFAULT_WINDOWS: Record<WindowType, Partial<Window>> = {
   web: { width: 700, height: 500, x: 60, y: 60 },
   welcome: { width: 500, height: 400, x: 150, y: 100 },
   weather: { width: 500, height: 450, x: 100, y: 100 },
-  dialog: { width: 400, height: 200, x: 200, y: 200 },
+  dialog: { width: 420, height: 220, x: 200, y: 200 },
   buddyrequest: { width: 400, height: 200, x: 200, y: 200 },
   profile: { width: 500, height: 500, x: 150, y: 100 },
   settings: { width: 600, height: 500, x: 150, y: 100 },
@@ -113,12 +122,38 @@ const initialState = {
   activeIMThread: null,
   activeChatRoom: null,
   activeChannel: null,
+  userSettings: {
+    autoOpenIMs: true, // Default: auto-open IMs
+  } as UserSettings,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
   ...initialState,
 
-  setCurrentUser: (user) => set({ currentUser: user }),
+  setCurrentUser: (user) => {
+    set({ currentUser: user });
+    // Load user settings from localStorage when user logs in
+    if (user && typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem(`rol-settings-${user.id}`);
+      if (savedSettings) {
+        try {
+          const parsed = JSON.parse(savedSettings);
+          set({ userSettings: { ...get().userSettings, ...parsed } });
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+  },
+
+  setUserSettings: (settings) => {
+    const newSettings = { ...get().userSettings, ...settings };
+    set({ userSettings: newSettings });
+    // Persist to localStorage
+    if (get().currentUser && typeof window !== 'undefined') {
+      localStorage.setItem(`rol-settings-${get().currentUser.id}`, JSON.stringify(newSettings));
+    }
+  },
 
   setMessages: (messages) => set({ messages }),
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),

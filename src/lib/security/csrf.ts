@@ -13,10 +13,20 @@ export async function setCSRFToken(): Promise<string> {
   const token = await generateCSRFToken();
   const cookieStore = await cookies();
   
+  // In production, check if we're behind a proxy (common with reverse proxies)
+  // If USE_SECURE_COOKIES is explicitly false, don't use secure flag
+  // This helps with development/staging environments behind proxies
+  const useSecure = process.env.NODE_ENV === 'production' && 
+                    process.env.USE_SECURE_COOKIES !== 'false';
+  
+  // Use 'lax' instead of 'strict' for better compatibility with redirects and proxies
+  // 'lax' still provides CSRF protection but is more forgiving
+  const sameSite = process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax';
+  
   cookieStore.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // Must be readable by JavaScript for client-side requests
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: useSecure,
+    sameSite: sameSite,
     maxAge: 60 * 60 * 24, // 24 hours
     path: '/',
   });

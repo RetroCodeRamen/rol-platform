@@ -93,15 +93,17 @@ export default function DialogWindow({
 
         {/* Buttons */}
         <div className="flex gap-2 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-900 rounded hover:bg-gray-300 border border-gray-400"
-            style={{
-              boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.2), inset 1px 1px 0 rgba(255,255,255,0.5)',
-            }}
-          >
-            {cancelText}
-          </button>
+          {cancelText && cancelText.trim() && (
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-sm bg-gray-200 text-gray-900 rounded hover:bg-gray-300 border border-gray-400"
+              style={{
+                boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.2), inset 1px 1px 0 rgba(255,255,255,0.5)',
+              }}
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             onClick={handleConfirm}
             disabled={showInput && !inputValue.trim()}

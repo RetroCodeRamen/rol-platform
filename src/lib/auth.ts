@@ -41,7 +41,10 @@ export async function verifyCredentials(username: string, password: string): Pro
 
 export async function setUserSession(userId: string): Promise<void> {
   const cookieStore = await cookies();
-  const useSecure = process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true';
+  // Allow explicit override for production behind proxies
+  const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                    process.env.USE_SECURE_COOKIES !== 'false';
+  const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
   
   // Generate session token (not just userId for additional security)
   const sessionToken = crypto.randomBytes(32).toString('hex');
@@ -52,7 +55,7 @@ export async function setUserSession(userId: string): Promise<void> {
   cookieStore.set('rol_session', userId, {
     httpOnly: true,
     secure: useSecure,
-    sameSite: 'strict', // Changed to strict for better security
+    sameSite: sameSite,
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
   });
@@ -61,7 +64,7 @@ export async function setUserSession(userId: string): Promise<void> {
   cookieStore.set('rol_session_token', sessionToken, {
     httpOnly: true,
     secure: useSecure,
-    sameSite: 'strict',
+    sameSite: sameSite,
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   });
@@ -73,7 +76,9 @@ export async function clearUserSession(): Promise<void> {
   
   try {
     const cookieStore = await cookies();
-    const useSecure = process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true';
+    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                      process.env.USE_SECURE_COOKIES !== 'false';
+    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
     
     // Check cookies before clearing
     const sessionBefore = cookieStore.get('rol_session');
@@ -83,11 +88,11 @@ export async function clearUserSession(): Promise<void> {
     console.log(`[${logId}]   rol_session_token: ${tokenBefore?.value ? 'EXISTS' : 'MISSING'}`);
     
     // Clear cookies with the same options they were set with to ensure proper deletion
-    console.log(`[${logId}] Setting empty cookies (secure: ${useSecure})...`);
+    console.log(`[${logId}] Setting empty cookies (secure: ${useSecure}, sameSite: ${sameSite})...`);
     cookieStore.set('rol_session', '', {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 0, // Expire immediately
       path: '/',
     });
@@ -95,7 +100,7 @@ export async function clearUserSession(): Promise<void> {
     cookieStore.set('rol_session_token', '', {
       httpOnly: true,
       secure: useSecure,
-      sameSite: 'strict',
+      sameSite: sameSite,
       maxAge: 0, // Expire immediately
       path: '/',
     });

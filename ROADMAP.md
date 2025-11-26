@@ -26,9 +26,15 @@
 - AOL-style UI with floating windows
 - Mail system (full server-side)
 - Instant Messaging (AIM-style)
-- Buddy List with groups
-- Weather & Web Browser
+- Buddy List with groups (block/unblock functionality)
+- Weather & Web Browser (with iframe fallback support)
 - Sound system
+- **Favorites System** - Save and reopen windows/pages
+- **Theme-Aware Windows** - Win95-style buttons for AOL 5.0 theme
+- **IM Auto-Open Settings** - User preference for auto-opening IM windows
+- **Unread IM Indicators** - Bold with asterisk for unread messages
+- **Centralized Message Handler** - AppMessageHandler for all app events
+- **Production Login Fix** - Flexible cookie configuration for production environments
 
 ---
 

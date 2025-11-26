@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getCurrentTheme, setTheme, themes, type ThemeName } from '@/lib/themes/themeSystem';
+import { useAppStore } from '@/state/store';
 import type { Window } from '@/state/store';
 
 interface SettingsWindowProps {
@@ -11,6 +12,8 @@ interface SettingsWindowProps {
 export default function SettingsWindow({ window }: SettingsWindowProps = {}) {
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('aol7');
   const [themeChanged, setThemeChanged] = useState(false);
+  const userSettings = useAppStore((state) => state.userSettings);
+  const setUserSettings = useAppStore((state) => state.setUserSettings);
 
   useEffect(() => {
     setCurrentTheme(getCurrentTheme());
@@ -69,6 +72,29 @@ export default function SettingsWindow({ window }: SettingsWindowProps = {}) {
                 Theme changed! Refresh the page to see all changes.
               </div>
             )}
+          </div>
+
+          {/* IM Settings */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Instant Messages</h3>
+            <div className="space-y-3">
+              <label className="flex items-center p-3 border-2 border-gray-300 rounded cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={userSettings.autoOpenIMs}
+                  onChange={(e) => {
+                    setUserSettings({ autoOpenIMs: e.target.checked });
+                  }}
+                  className="mr-3"
+                />
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">Auto-open new IM windows</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    When disabled, new IMs will show as bold with asterisk (*username) in your buddy list until opened
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Other Settings Sections (Placeholder) */}

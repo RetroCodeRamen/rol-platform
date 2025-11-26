@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { mailService } from '@/services/MailService';
 import { useAppStore } from '@/state/store';
 import { notificationService } from '@/services/NotificationService';
+import { dispatchMessage } from '@/lib/messaging/AppMessageHandler';
 
 interface ComposeViewProps {
   onClose: () => void;
@@ -35,7 +36,10 @@ export default function ComposeView({ onClose }: ComposeViewProps) {
     } catch (error: any) {
       console.error('Failed to send message:', error);
       const errorMessage = error?.message || 'Failed to send message. Please try again.';
-      alert(errorMessage);
+      dispatchMessage('SYSTEM_ALERT', {
+        message: errorMessage,
+        title: 'Send Error',
+      });
     } finally {
       setIsSending(false);
     }

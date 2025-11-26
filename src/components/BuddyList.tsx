@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/state/store';
 import DialogWindow from './DialogWindow';
+import { dispatchMessage } from '@/lib/messaging/AppMessageHandler';
 
 interface Buddy {
   id: string;
@@ -11,6 +12,13 @@ interface Buddy {
   status: 'online' | 'offline' | 'away' | 'busy';
   awayStatus?: 'available' | 'away' | 'busy' | 'invisible';
   awayMessage?: string;
+  hasUnreadIM?: boolean; // Flag for bold+asterisk when IM auto-open is disabled
+}
+
+interface BlockedUser {
+  id: string;
+  username: string;
+  screenName: string;
 }
 
 interface BuddyGroup {
@@ -26,9 +34,10 @@ export default function BuddyList() {
   const [activeTab, setActiveTab] = useState<Tab>('online');
   const [groups, setGroups] = useState<BuddyGroup[]>([]);
   const [buddies, setBuddies] = useState<Buddy[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<{
-    type: 'buddy' | 'group' | null;
+    type: 'buddy' | 'group' | 'blocked' | null;
     id: string;
     x: number;
     y: number;
@@ -45,6 +54,7 @@ export default function BuddyList() {
   useEffect(() => {
     loadBuddies();
     loadGroups();
+    loadBlockedUsers();
     
     // Set up ping interval (every 10 seconds)
     const pingInterval = setInterval(() => {
@@ -168,13 +178,38 @@ export default function BuddyList() {
       const data = await response.json();
       if (data.success) {
         loadBuddies(); // Reload buddy list
-        alert(`${username} has been removed from your buddy list.`);
+        dispatchMessage('SYSTEM_ALERT', {
+          message: `${username} has been removed from your buddy list.`,
+          title: 'Buddy Removed',
+        });
       } else {
-        alert(data.error || 'Failed to remove buddy');
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to remove buddy',
+          title: 'Error',
+        });
       }
     } catch (error) {
       console.error('Failed to remove buddy:', error);
-      alert('Failed to remove buddy');
+      dispatchMessage('SYSTEM_ALERT', {
+        message: 'Failed to remove buddy',
+        title: 'Error',
+      });
+    }
+  };
+
+  const loadBlockedUsers = async () => {
+    try {
+      const response = await fetch('/api/im/buddies/blocked', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setBlockedUsers(data.blockedUsers || []);
+      }
+    } catch (error) {
+      console.error('Failed to load blocked users:', error);
     }
   };
 
@@ -190,13 +225,55 @@ export default function BuddyList() {
       const data = await response.json();
       if (data.success) {
         loadBuddies(); // Reload buddy list
-        alert(`${username} has been blocked.`);
+        loadBlockedUsers(); // Reload blocked users
+        dispatchMessage('SYSTEM_ALERT', {
+          message: `${username} has been blocked.`,
+          title: 'User Blocked',
+        });
       } else {
-        alert(data.error || 'Failed to block user');
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to block user',
+          title: 'Error',
+        });
       }
     } catch (error) {
       console.error('Failed to block user:', error);
-      alert('Failed to block user');
+      dispatchMessage('SYSTEM_ALERT', {
+        message: 'Failed to block user',
+        title: 'Error',
+      });
+    }
+  };
+
+  const handleUnblockUser = async (username: string) => {
+    try {
+      const response = await fetch('/api/im/buddies/unblock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        loadBlockedUsers(); // Reload blocked users
+        loadBuddies(); // Reload buddy list in case they become visible
+        dispatchMessage('SYSTEM_ALERT', {
+          message: `${username} has been unblocked.`,
+          title: 'User Unblocked',
+        });
+      } else {
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to unblock user',
+          title: 'Error',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to unblock user:', error);
+      dispatchMessage('SYSTEM_ALERT', {
+        message: 'Failed to unblock user',
+        title: 'Error',
+      });
     }
   };
 
@@ -257,10 +334,16 @@ export default function BuddyList() {
           if (data.success) {
             loadGroups();
           } else {
-            alert(data.error || 'Failed to create group');
+            dispatchMessage('SYSTEM_ALERT', {
+              message: data.error || 'Failed to create group',
+              title: 'Error',
+            });
           }
         } catch (error) {
-          alert('Failed to create group');
+          dispatchMessage('SYSTEM_ALERT', {
+            message: 'Failed to create group',
+            title: 'Error',
+          });
         }
       }
     );
@@ -291,10 +374,16 @@ export default function BuddyList() {
           if (data.success) {
             loadGroups();
           } else {
-            alert(data.error || 'Failed to rename group');
+            dispatchMessage('SYSTEM_ALERT', {
+              message: data.error || 'Failed to rename group',
+              title: 'Error',
+            });
           }
         } catch (error) {
-          alert('Failed to rename group');
+          dispatchMessage('SYSTEM_ALERT', {
+            message: 'Failed to rename group',
+            title: 'Error',
+          });
         }
       }
     );
@@ -322,10 +411,16 @@ export default function BuddyList() {
             loadGroups();
             loadBuddies(); // Reload to update buddy assignments
           } else {
-            alert(data.error || 'Failed to remove group');
+            dispatchMessage('SYSTEM_ALERT', {
+              message: data.error || 'Failed to remove group',
+              title: 'Error',
+            });
           }
         } catch (error) {
-          alert('Failed to remove group');
+          dispatchMessage('SYSTEM_ALERT', {
+            message: 'Failed to remove group',
+            title: 'Error',
+          });
         }
       }
     );
@@ -348,12 +443,21 @@ export default function BuddyList() {
         setShowAddBuddyModal(false);
         setNewBuddyUsername('');
         loadBuddies(); // Reload buddies list
-        alert(`Added ${newBuddyUsername} to your buddy list!`);
+        dispatchMessage('SYSTEM_ALERT', {
+          message: `Added ${newBuddyUsername} to your buddy list!`,
+          title: 'Buddy Added',
+        });
       } else {
-        alert(data.error || 'Failed to add buddy');
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to add buddy',
+          title: 'Error',
+        });
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to add buddy');
+      dispatchMessage('SYSTEM_ALERT', {
+        message: error.message || 'Failed to add buddy',
+        title: 'Error',
+      });
     } finally {
       setAddingBuddy(false);
     }
@@ -469,7 +573,17 @@ export default function BuddyList() {
                     <div
                       key={buddy.id}
                       className="cursor-pointer"
-                      onDoubleClick={() => handleBuddyDoubleClick(buddy)}
+                      onDoubleClick={() => {
+                        handleBuddyDoubleClick(buddy);
+                        // Clear unread IM flag when opening IM window
+                        if (buddy.hasUnreadIM) {
+                          setBuddies(
+                            buddies.map((b) =>
+                              b.id === buddy.id ? { ...b, hasUnreadIM: false } : b
+                            )
+                          );
+                        }
+                      }}
                       onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
                       style={{
                         padding: '1px 4px',
@@ -477,6 +591,7 @@ export default function BuddyList() {
                         color: '#000000',
                         lineHeight: '1.4',
                         minHeight: '16px',
+                        fontWeight: buddy.hasUnreadIM ? 'bold' : 'normal',
                       }}
                       onMouseEnter={(e) => {
                         (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
@@ -485,7 +600,7 @@ export default function BuddyList() {
                         (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
                       }}
                     >
-                      {buddy.username}
+                      {buddy.hasUnreadIM ? `*${buddy.username}` : buddy.username}
                       {buddy.awayStatus === 'away' && buddy.awayMessage && (
                         <span style={{ color: AIM_DARK_GREY, fontSize: '10px', fontStyle: 'italic' }}>
                           {' '}({buddy.awayMessage})
@@ -498,7 +613,17 @@ export default function BuddyList() {
                     <div
                       key={buddy.id}
                       className="cursor-pointer"
-                      onDoubleClick={() => handleBuddyDoubleClick(buddy)}
+                      onDoubleClick={() => {
+                        handleBuddyDoubleClick(buddy);
+                        // Clear unread IM flag when opening IM window
+                        if (buddy.hasUnreadIM) {
+                          setBuddies(
+                            buddies.map((b) =>
+                              b.id === buddy.id ? { ...b, hasUnreadIM: false } : b
+                            )
+                          );
+                        }
+                      }}
                       onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
                       style={{
                         padding: '1px 4px',
@@ -506,6 +631,7 @@ export default function BuddyList() {
                         color: AIM_DARK_GREY,
                         lineHeight: '1.4',
                         minHeight: '16px',
+                        fontWeight: buddy.hasUnreadIM ? 'bold' : 'normal',
                       }}
                       onMouseEnter={(e) => {
                         (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
@@ -514,7 +640,7 @@ export default function BuddyList() {
                         (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
                       }}
                     >
-                      {buddy.username}
+                      {buddy.hasUnreadIM ? `*${buddy.username}` : buddy.username}
                     </div>
                   ))}
                 </div>
@@ -558,7 +684,17 @@ export default function BuddyList() {
                   <div
                     key={buddy.id}
                     className="cursor-pointer"
-                    onDoubleClick={() => handleBuddyDoubleClick(buddy)}
+                    onDoubleClick={() => {
+                      handleBuddyDoubleClick(buddy);
+                      // Clear unread IM flag when opening IM window
+                      if (buddy.hasUnreadIM) {
+                        setBuddies(
+                          buddies.map((b) =>
+                            b.id === buddy.id ? { ...b, hasUnreadIM: false } : b
+                          )
+                        );
+                      }
+                    }}
                     onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
                     style={{
                       padding: '1px 4px',
@@ -566,6 +702,7 @@ export default function BuddyList() {
                       color: AIM_DARK_GREY,
                       lineHeight: '1.4',
                       minHeight: '16px',
+                      fontWeight: buddy.hasUnreadIM ? 'bold' : 'normal',
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
@@ -574,7 +711,73 @@ export default function BuddyList() {
                       (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
                     }}
                   >
-                    {buddy.username}
+                    {buddy.hasUnreadIM ? `*${buddy.username}` : buddy.username}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Blocked Users section */}
+        {blockedUsers.length > 0 && (
+          <div style={{ marginTop: '2px' }}>
+            <div
+              className="cursor-pointer"
+              onClick={() => toggleGroup('blocked')}
+              style={{
+                padding: '2px 4px',
+                minHeight: '18px',
+              }}
+            >
+              <div className="flex items-center" style={{ gap: '4px' }}>
+                {/* Disclosure Triangle */}
+                <span style={{ fontSize: '10px', color: AIM_DARK_GREY, width: '12px' }}>
+                  {expandedGroups.has('blocked') ? '▼' : '►'}
+                </span>
+                {/* Blocked Users Group Name - Red tint */}
+                <span
+                  className="font-bold"
+                  style={{
+                    fontSize: '11px',
+                    color: '#CC0000',
+                    lineHeight: '1.3',
+                  }}
+                >
+                  Blocked ({blockedUsers.length})
+                </span>
+              </div>
+            </div>
+            {expandedGroups.has('blocked') && (
+              <div style={{ marginLeft: '16px', paddingTop: '1px' }}>
+                {blockedUsers.map((blockedUser) => (
+                  <div
+                    key={blockedUser.id}
+                    className="cursor-pointer"
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setContextMenu({
+                        type: 'blocked',
+                        id: blockedUser.id,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
+                    style={{
+                      padding: '1px 4px',
+                      fontSize: '11px',
+                      color: '#CC0000',
+                      lineHeight: '1.4',
+                      minHeight: '16px',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = '#FFE5E5';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    {blockedUser.username}
                   </div>
                 ))}
               </div>
@@ -843,6 +1046,33 @@ export default function BuddyList() {
                   }}
                 >
                   Block User
+                </button>
+              </div>
+            ) : contextMenu.type === 'blocked' ? (
+              <div className="py-1">
+                <button
+                  className="w-full text-left px-3 py-1 text-sm hover:bg-blue-100"
+                  onClick={() => {
+                    const blockedUser = blockedUsers.find((b) => b.id === contextMenu.id);
+                    if (blockedUser) {
+                      handleUnblockUser(blockedUser.username);
+                    }
+                    setContextMenu(null);
+                  }}
+                >
+                  Unblock User
+                </button>
+                <button
+                  className="w-full text-left px-3 py-1 text-sm hover:bg-blue-100"
+                  onClick={() => {
+                    const blockedUser = blockedUsers.find((b) => b.id === contextMenu.id);
+                    if (blockedUser) {
+                      handleViewProfile(blockedUser.username);
+                    }
+                    setContextMenu(null);
+                  }}
+                >
+                  View Profile
                 </button>
               </div>
             ) : (

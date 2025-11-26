@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useAppStore } from '@/state/store';
 
 /**
  * ROL RamenDesk Edition Browser Component
@@ -17,7 +18,16 @@ const getDefaultUrl = () => {
 
 const DEFAULT_HOME_URL = getDefaultUrl();
 
-export default function WebBrowser() {
+interface WebBrowserProps {
+  window?: {
+    id: string;
+    url?: string;
+  };
+}
+
+export default function WebBrowser({ window: windowData }: WebBrowserProps = {}) {
+  const updateWindow = useAppStore((state) => state.updateWindow);
+  
   // Get full URL for iframe - must be absolute for same-origin iframe to work
   const getDefaultUrl = () => {
     if (typeof window !== 'undefined') {
@@ -26,17 +36,19 @@ export default function WebBrowser() {
     return '/default_index.html';
   };
   
-  const defaultUrl = getDefaultUrl();
+  const defaultUrl = windowData?.url || getDefaultUrl();
   const [url, setUrl] = useState(defaultUrl);
   const [currentUrl, setCurrentUrl] = useState(defaultUrl);
   const [isLoading, setIsLoading] = useState(true); // Start loading
   const [error, setError] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false); // Iframe blocked state
   const [history, setHistory] = useState<string[]>([defaultUrl]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle iframe load events
+  // Handle iframe load events - simplified like Noodlescape Navigator
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
@@ -44,46 +56,67 @@ export default function WebBrowser() {
     // Set loading state when URL changes
     setIsLoading(true);
     setError(null);
+    setIsBlocked(false);
+
+    // Clear any existing timeout
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+    }
 
     const handleLoad = () => {
       setIsLoading(false);
+      // Reset error on load - if page is blocked, it will show blank or trigger error
       setError(null);
-      // Update current URL from iframe (if allowed by CORS)
+      setIsBlocked(false);
+      
+      // Try to update URL from iframe (if allowed by CORS)
       try {
         const iframeUrl = iframe.contentWindow?.location.href;
         if (iframeUrl && iframeUrl !== 'about:blank') {
           setCurrentUrl(iframeUrl);
           setUrl(iframeUrl);
+          // Update window's url field for favorites
+          if (windowData?.id) {
+            updateWindow(windowData.id, { url: iframeUrl });
+          }
         }
       } catch (e) {
         // Cross-origin restrictions - can't read iframe URL
-        // This is expected for external sites
+        // This is normal for external sites, not necessarily blocked
+        // Update with the URL we tried to load
+        if (windowData?.id && currentUrl) {
+          updateWindow(windowData.id, { url: currentUrl });
+        }
       }
     };
 
     const handleError = () => {
       setIsLoading(false);
-      setError('Failed to load page. Please check the URL and try again.');
+      setIsBlocked(true);
+      setError('Failed to load page. This site may block iframe embedding.');
     };
 
-    // Timeout to catch pages that don't load
-    const timeoutId = setTimeout(() => {
-      // Check if iframe is still loading after 10 seconds
+    // Timeout to detect pages that don't load at all
+    loadTimeoutRef.current = setTimeout(() => {
       if (isLoading) {
         setIsLoading(false);
-        // Don't set error immediately - might still be loading
+        // If still loading after timeout, mark as blocked
+        setIsBlocked(true);
+        setError('Page failed to load. The site may have blocked iframe embedding or the connection timed out.');
       }
-    }, 10000);
+    }, 10000); // 10 second timeout
 
     iframe.addEventListener('load', handleLoad);
     iframe.addEventListener('error', handleError);
 
     return () => {
-      clearTimeout(timeoutId);
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+      }
       iframe.removeEventListener('load', handleLoad);
       iframe.removeEventListener('error', handleError);
     };
-  }, [currentUrl, isLoading]);
+  }, [currentUrl, isLoading, windowData]);
 
   const normalizeUrl = (input: string): string => {
     const trimmed = input.trim();
@@ -267,7 +300,35 @@ export default function WebBrowser() {
 
       {/* Browser Content Area */}
       <div className="flex-1 relative overflow-hidden bg-white">
-        {error ? (
+        {isBlocked ? (
+          // Iframe blocked fallback UI
+          <div className="h-full flex items-center justify-center p-8 bg-gray-50">
+            <div className="text-center max-w-md">
+              <div className="text-5xl mb-4">🚫</div>
+              <h3 className="text-lg font-bold text-gray-800 mb-3">
+                This site can&apos;t be displayed inside Ramen Online
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                The website has blocked iframe embedding (X-Frame-Options or Content Security Policy) or is unavailable in an iframe.
+              </p>
+              <button
+                onClick={() => {
+                  // Open in user's actual browser
+                  if (typeof window !== 'undefined') {
+                    window.open(currentUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+                className="px-6 py-3 text-sm font-semibold border-2 border-gray-400 bg-blue-500 text-white hover:bg-blue-600"
+                style={{
+                  borderColor: '#ffffff #808080 #808080 #ffffff',
+                  boxShadow: 'inset -1px -1px 0 #000000, inset 1px 1px 0 #c0c0c0',
+                }}
+              >
+                Open on Computer Desktop
+              </button>
+            </div>
+          </div>
+        ) : error ? (
           <div className="h-full flex items-center justify-center p-8">
             <div className="text-center">
               <div className="text-4xl mb-4">⚠️</div>
@@ -291,14 +352,15 @@ export default function WebBrowser() {
             src={currentUrl}
             className="w-full h-full border-0"
             title="Web Browser Content"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-navigation"
-            allow="fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
+            referrerPolicy="no-referrer"
             onLoad={() => {
               setIsLoading(false);
               setError(null);
             }}
             onError={() => {
               setIsLoading(false);
+              setIsBlocked(true);
               setError('Failed to load page. The page may have blocked iframe embedding or the URL is invalid.');
             }}
           />

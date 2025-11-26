@@ -11,6 +11,9 @@ import { disconnectSocket, getSocket } from '@/lib/websocket/client';
 import { SoundService } from '@/services/SoundService';
 import type { IIMMessage } from '@/services/ChatService';
 
+// Guard to avoid duplicate SHORTCUT_CREATED subscriptions (e.g. React Fast Refresh)
+let shortcutHandlerInitialized = false;
+
 export default function ROLShell() {
   const currentUser = useAppStore((state) => state.currentUser);
   const messages = useAppStore((state) => state.messages);
@@ -67,36 +70,20 @@ export default function ROLShell() {
     };
   }, [messages, setCurrentUser, openWindow]);
 
-  // Global IM message handler - auto-open/focus IM windows
+  // Global IM message handler - uses AppMessageHandler
   useEffect(() => {
     if (!currentUser) return;
 
     const socket = getSocket();
     if (!socket) return;
 
-    const handleNewIM = (message: IIMMessage) => {
+    const handleNewIM = async (message: IIMMessage) => {
       // Only handle messages TO the current user
       if (message.to !== currentUser.username) return;
 
-      // Play sound notification
-      SoundService.play('new_im');
-
-      // Check if IM window already exists for this sender
-      const existingWindow = windows.find(
-        (w) => w.type === 'im' && w.participant === message.from
-      );
-
-      if (existingWindow) {
-        // Bring existing window to front
-        bringToFront(existingWindow.id);
-      } else {
-        // Open new IM window
-        const myScreenName = currentUser.screenName || currentUser.username;
-        const title = `${myScreenName} : ${message.from} - Instant Message`;
-        openWindow('im', title, {
-          participant: message.from,
-        });
-      }
+      // Dispatch through AppMessageHandler instead of handling directly
+      const { dispatchMessage } = await import('@/lib/messaging/AppMessageHandler');
+      dispatchMessage('IM_NEW_MESSAGE', { message });
 
       // Show notification
       notificationService.notifyNewIM(message, currentUser.username);
@@ -107,7 +94,184 @@ export default function ROLShell() {
     return () => {
       socket.off('im:new', handleNewIM);
     };
+  }, [currentUser]);
+
+  // Subscribe to IM_NEW_MESSAGE from AppMessageHandler
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    const setupHandler = async () => {
+      const { subscribeToMessage } = await import('@/lib/messaging/AppMessageHandler');
+      const userSettings = useAppStore.getState().userSettings;
+
+      unsubscribe = subscribeToMessage('IM_NEW_MESSAGE', ({ message }: { message: IIMMessage }) => {
+        // Only handle messages TO the current user
+        if (message.to !== currentUser.username) return;
+
+        // Play sound notification
+        SoundService.play('new_im');
+
+        // Check if IM window already exists for this sender
+        const existingWindow = windows.find(
+          (w) => w.type === 'im' && w.participant === message.from
+        );
+
+        if (existingWindow) {
+          // Don't force focus - just play sound
+          // Window will update via its own message listener
+        } else {
+          // No window exists - check auto-open setting
+          if (userSettings.autoOpenIMs) {
+            // Auto-open: Create and show window immediately
+            const myScreenName = currentUser.screenName || currentUser.username;
+            const title = `${myScreenName} : ${message.from} - Instant Message`;
+            openWindow('im', title, {
+              participant: message.from,
+            });
+          } else {
+            // Don't auto-open: Mark sender as bold+asterisk in buddy list
+            const { setBuddies, buddies } = useAppStore.getState();
+            setBuddies(
+              buddies.map((buddy) => {
+                if (buddy.username === message.from) {
+                  return {
+                    ...buddy,
+                    hasUnreadIM: true, // Flag for bold+asterisk display
+                  };
+                }
+                return buddy;
+              })
+            );
+          }
+        }
+      });
+    };
+
+    setupHandler();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [currentUser, windows, openWindow, bringToFront]);
+
+  // Handle SHORTCUT_CREATED messages - save to favorites
+  useEffect(() => {
+    if (!currentUser) return;
+    if (shortcutHandlerInitialized) return;
+    shortcutHandlerInitialized = true;
+
+    let unsubscribe: (() => void) | null = null;
+
+    const setupShortcutHandler = async () => {
+      const { subscribeToMessage, dispatchMessage } = await import('@/lib/messaging/AppMessageHandler');
+
+      unsubscribe = subscribeToMessage('SHORTCUT_CREATED', async (payload: {
+        windowId: string;
+        windowType: string;
+        title: string;
+        url?: string;
+      }) => {
+        console.log('[ROLShell] SHORTCUT_CREATED received:', payload);
+        try {
+          const response = await fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: payload.title,
+              windowType: payload.windowType,
+              url: payload.url,
+              options: payload.url ? { url: payload.url } : undefined,
+            }),
+          });
+
+          const data = await response.json();
+          console.log('[ROLShell] Favorite save response:', data);
+          if (data.success) {
+            // Notify that a favorite was added so FavoritesWindow can refresh
+            dispatchMessage('FAVORITE_ADDED', { favorite: data.favorite });
+            dispatchMessage('SYSTEM_ALERT', {
+              message: `"${payload.title}" added to favorites`,
+              title: 'Favorite Added',
+            });
+          } else if (data.error === 'Favorite already exists') {
+            dispatchMessage('SYSTEM_ALERT', {
+              message: `"${payload.title}" is already in your favorites`,
+              title: 'Already Added',
+            });
+          } else {
+            dispatchMessage('SYSTEM_ALERT', {
+              message: data.error || 'Failed to add favorite',
+              title: 'Error',
+            });
+          }
+        } catch (error) {
+          console.error('[ROLShell] Failed to save favorite:', error);
+          dispatchMessage('SYSTEM_ALERT', {
+            message: 'Failed to add favorite',
+            title: 'Error',
+          });
+        }
+      });
+    };
+
+    setupShortcutHandler();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [currentUser]);
+
+  // Handle SYSTEM_ALERT messages - show in-app dialogs instead of browser alerts
+  useEffect(() => {
+    const setupSystemAlertHandler = async () => {
+      const { subscribeToMessage } = await import('@/lib/messaging/AppMessageHandler');
+      const closeWindow = useAppStore.getState().closeWindow;
+
+      const unsubscribe = subscribeToMessage('SYSTEM_ALERT', (payload: { message: string; title?: string }) => {
+        const { message, title = 'Alert' } = payload;
+        
+        // Open a dialog window for the alert (slightly larger so content & buttons always fit)
+        const dialogId = openWindow('dialog', title, {
+          width: 460,
+          height: 220,
+          x: 300,
+          y: 250,
+          dialogProps: {
+            message,
+            showInput: false,
+            onConfirm: () => {
+              closeWindow(dialogId);
+            },
+            onCancel: () => {
+              closeWindow(dialogId);
+            },
+            confirmText: 'OK',
+            cancelText: '', // Hide cancel button for alerts
+          },
+        });
+      });
+
+      return unsubscribe;
+    };
+
+    let unsubscribe: (() => void) | null = null;
+    setupSystemAlertHandler().then((unsub) => {
+      unsubscribe = unsub;
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [openWindow]);
 
   // Check for pending buddy requests and show popups
   useEffect(() => {
@@ -224,17 +388,6 @@ export default function ROLShell() {
 
       {/* ROL Workspace Container - Single Application Window */}
       <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: 'var(--light-gray, #c0c0c0)' }}>
-        {/* Welcome Message (if no windows open) */}
-        {useAppStore.getState().windows.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center text-gray-700">
-              <h2 className="text-2xl font-bold mb-2">Welcome, {currentUser?.screenName}!</h2>
-              <p className="text-lg">You&apos;ve got mail!</p>
-              <p className="text-sm mt-2 opacity-70">Use the toolbar above to get started</p>
-            </div>
-          </div>
-        )}
-
         {/* Window Manager - renders all ROL internal windows */}
         <WindowManager />
       </div>

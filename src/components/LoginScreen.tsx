@@ -43,6 +43,7 @@ export default function LoginScreen({ initialError }: LoginScreenProps = {}) {
   const router = useRouter();
   const setCurrentUser = useAppStore((state) => state.setCurrentUser);
 
+
   useEffect(() => {
     if (initialError) {
       setError(initialError);
@@ -128,10 +129,21 @@ export default function LoginScreen({ initialError }: LoginScreenProps = {}) {
     
     e.preventDefault();
     
+    // Validate inputs AFTER clicking connect
     // console.log(`[${logId}] STEP 1.1: Validating form inputs...`);
-    if (!username.trim() || !password.trim()) {
-      // console.log(`[${logId}] ❌ STEP 1.1 FAILED - missing username or password`);
-      setError('Please enter both screen name and password');
+    if (!username.trim() && !password.trim()) {
+      // console.log(`[${logId}] ❌ STEP 1.1 FAILED - missing both username and password`);
+      setError('Please check your screen name and password');
+      return;
+    }
+    if (!username.trim()) {
+      // console.log(`[${logId}] ❌ STEP 1.1 FAILED - missing username`);
+      setError('Please check your screen name');
+      return;
+    }
+    if (!password.trim()) {
+      // console.log(`[${logId}] ❌ STEP 1.1 FAILED - missing password`);
+      setError('Please check your password');
       return;
     }
     // console.log(`[${logId}] ✅ STEP 1.1 PASSED - form inputs valid`);
@@ -323,8 +335,9 @@ export default function LoginScreen({ initialError }: LoginScreenProps = {}) {
 
           <button
             type="submit"
-            disabled={isLoading || !username.trim()}
+            disabled={isLoading}
             className="w-full py-3 bg-gradient-to-b from-blue-500 to-blue-600 text-white font-bold rounded border-2 border-blue-700 hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            title={isLoading ? 'Connecting...' : 'Click to connect'}
           >
             {isLoading ? 'Connecting...' : 'Connect'}
           </button>

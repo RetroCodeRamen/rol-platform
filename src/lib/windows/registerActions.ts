@@ -83,10 +83,18 @@ registerAction('my-files', {
 });
 
 registerAction('favorites', {
-  windowType: 'web', // Placeholder
+  windowType: 'favorites',
   title: 'Favorites',
-  handler: () => {
-    console.log('Favorites action - not yet implemented');
+  handler: (openWindow, getWindowByType, bringToFront) => {
+    // Singleton window - check if exists
+    if (getWindowByType && bringToFront) {
+      const existing = getWindowByType('favorites');
+      if (existing) {
+        bringToFront(existing.id);
+        return;
+      }
+    }
+    openWindow('favorites', 'Favorites');
   },
 });
 

@@ -46,7 +46,11 @@ export default function WindowManager() {
     }
   };
 
-  const getWindowIcon = (type: typeof windows[0]['type']) => {
+  const getWindowIcon = (type: typeof windows[0]['type'], title?: string) => {
+    // Check if this is a Favorites window by title
+    if (title === 'Favorites') {
+      return '/images/icon-fav.png';
+    }
     if (type === 'dialog') return '💬';
     if (type === 'buddyrequest') return '👤';
     const config = getWindowConfig(type);
@@ -56,7 +60,7 @@ export default function WindowManager() {
   return (
     <>
       {windows.map((window) => (
-        <WindowComponent key={window.id} window={window} icon={getWindowIcon(window.type)}>
+        <WindowComponent key={window.id} window={window} icon={getWindowIcon(window.type, window.title)}>
           {renderWindowContent(window)}
         </WindowComponent>
       ))}

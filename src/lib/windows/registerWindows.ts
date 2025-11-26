@@ -17,6 +17,7 @@ import WebBrowser from '@/components/WebBrowser';
 import WeatherWindow from '@/components/WeatherWindow';
 import ProfileWindow from '@/components/ProfileWindow';
 import SettingsWindow from '@/components/SettingsWindow';
+import FavoritesWindow from '@/components/FavoritesWindow';
 
 // Register all window types
 registerWindow('mail', {
@@ -98,5 +99,13 @@ registerWindow('settings', {
   defaultTitle: 'My ROL',
   defaultSize: { width: 600, height: 500, x: 150, y: 100 },
   singleton: true, // Only one settings window allowed
+});
+
+registerWindow('favorites', {
+  component: FavoritesWindow,
+  icon: '/images/icon-fav.png',
+  defaultTitle: 'Favorites',
+  defaultSize: { width: 600, height: 500, x: 150, y: 100 },
+  singleton: true, // Only one favorites window allowed
 });
 
