@@ -86,7 +86,7 @@ export default function IMWindow({ window }: IMWindowProps) {
     if (!participant) return;
     
     // Clear the unread IM flag for this participant in buddy list
-    const { setBuddies, buddies } = useAppStoreDirect.getState();
+    const { setBuddies, buddies } = useAppStore.getState();
     const hasUnread = buddies.some((b) => b.username === participant && b.hasUnreadIM);
     
     if (hasUnread) {
