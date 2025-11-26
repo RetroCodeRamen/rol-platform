@@ -84,19 +84,14 @@ export default function IMWindow({ window }: IMWindowProps) {
 
   // Clear unread IM flag when window is opened
   useEffect(() => {
-    if (!participant) return;
-    
-    // Clear the unread IM flag for this participant
-    const { markIMAsRead } = useAppStore.getState();
-    markIMAsRead(participant);
+    if (!participant || !currentUser) return;
     
     // Dispatch IM_READ event via AppMessageHandler
-    if (participant && currentUser) {
-      dispatchMessage('IM_READ', {
-        senderUsername: participant,
-        recipientUsername: currentUser.username,
-      });
-    }
+    // The message handler will clear the unread flag
+    dispatchMessage('IM_READ', {
+      senderUsername: participant,
+      recipientUsername: currentUser.username,
+    });
   }, [participant, currentUser]);
 
   // Set up WebSocket listeners for real-time messaging
