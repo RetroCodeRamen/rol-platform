@@ -22,8 +22,8 @@ export function useIMMessageHandler() {
   useEffect(() => {
     if (!currentUser) return;
 
-    const handleNewIM = (payload: { message: IIMMessage }) => {
-      const message = payload.message;
+    const handleNewIM = (payload: any) => {
+      const message = payload.message as IIMMessage;
       
       // Only handle messages TO the current user
       if (message.to !== currentUser.username) return;
