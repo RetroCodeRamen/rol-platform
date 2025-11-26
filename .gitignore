@@ -40,3 +40,4 @@ serverCred.cfg
 *.tsbuildinfo
 next-env.d.ts
 
+deploy-direct.sh
