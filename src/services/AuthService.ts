@@ -20,11 +20,24 @@ export interface IAuthService {
 
 const API_BASE = '/api/auth';
 
+// Detect if we're running in an iframe
+function isInIframe(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    // Cross-origin iframe - can't access window.top, so we're definitely in an iframe
+    return true;
+  }
+}
+
 async function fetchWithCSRF(url: string, options: RequestInit = {}): Promise<Response> {
   const fetchId = `FETCH-${Date.now()}`;
+  const inIframe = isInIframe();
   // console.log(`\n[${fetchId}] ========== fetchWithCSRF START ==========`);
   // console.log(`[${fetchId}] URL: ${url}`);
   // console.log(`[${fetchId}] Method: ${options.method || 'GET'}`);
+  // console.log(`[${fetchId}] Iframe context: ${inIframe}`);
   
   try {
     // console.log(`[${fetchId}] Fetching CSRF token...`);
@@ -37,9 +50,18 @@ async function fetchWithCSRF(url: string, options: RequestInit = {}): Promise<Re
       headers.set('X-CSRF-Token', csrfToken);
       // console.log(`[${fetchId}] CSRF token added to headers`);
     }
+    // Add iframe context header
+    if (inIframe) {
+      headers.set('X-Iframe-Context', 'true');
+    }
+    
+    // Add iframe query parameter if needed
+    const urlWithIframe = inIframe && !url.includes('iframe=true') 
+      ? `${url}${url.includes('?') ? '&' : '?'}iframe=true`
+      : url;
     
     // console.log(`[${fetchId}] Making fetch request with credentials: include...`);
-    const response = await fetch(url, {
+    const response = await fetch(urlWithIframe, {
       ...options,
       headers,
       credentials: 'include', // Important for cookies

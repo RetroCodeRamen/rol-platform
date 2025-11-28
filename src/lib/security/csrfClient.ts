@@ -2,16 +2,35 @@
 
 let csrfToken: string | null = null;
 
+// Detect if we're running in an iframe
+function isInIframe(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    // Cross-origin iframe - can't access window.top, so we're definitely in an iframe
+    return true;
+  }
+}
+
 export async function getCSRFToken(): Promise<string> {
   if (csrfToken) {
     return csrfToken;
   }
 
   try {
-    console.log('[CSRF] Fetching CSRF token...');
-    const response = await fetch('/api/auth/csrf-token', {
+    const inIframe = isInIframe();
+    console.log('[CSRF] Fetching CSRF token...', inIframe ? '(iframe context)' : '(normal context)');
+    
+    const headers: HeadersInit = {};
+    if (inIframe) {
+      headers['X-Iframe-Context'] = 'true';
+    }
+    
+    const response = await fetch('/api/auth/csrf-token' + (inIframe ? '?iframe=true' : ''), {
       method: 'GET',
       credentials: 'include',
+      headers,
     });
 
     if (!response.ok) {

@@ -152,12 +152,27 @@ export async function POST(request: NextRequest) {
 
     // Set session - create response first, then set cookies on it
     const userId = String(user._id);
-    // Allow explicit override for production behind proxies
-    // If USE_SECURE_COOKIES is explicitly false, don't use secure flag
-    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
-                      process.env.USE_SECURE_COOKIES !== 'false';
-    // Use 'lax' instead of 'strict' for better compatibility with redirects and proxies
-    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    
+    // Detect iframe context - check for iframe header or query parameter
+    const isIframe = request.headers.get('x-iframe-context') === 'true' || 
+                     request.nextUrl.searchParams.get('iframe') === 'true';
+    
+    // For iframe embedding, we MUST use SameSite=None with Secure=true
+    // This is required for cross-origin iframe cookies to work
+    let useSecure: boolean;
+    let sameSite: 'strict' | 'lax' | 'none';
+    
+    if (isIframe) {
+      // In iframe: SameSite=None REQUIRES Secure=true
+      useSecure = true;
+      sameSite = 'none';
+      console.log(`[${requestId}] Iframe context detected - using SameSite=None, Secure=true`);
+    } else {
+      // Normal context: use environment-based settings
+      useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                  process.env.USE_SECURE_COOKIES !== 'false';
+      sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    }
     const sessionToken = crypto.randomBytes(32).toString('hex');
     
     console.log(`[${requestId}] Creating session...`);

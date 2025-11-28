@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { setCSRFToken } from '@/lib/security/csrf';
 import { addSecurityHeaders } from '@/lib/security/headers';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const token = await setCSRFToken();
+    // Detect iframe context
+    const isIframe = request.headers.get('x-iframe-context') === 'true' || 
+                     request.nextUrl.searchParams.get('iframe') === 'true';
+    
+    const token = await setCSRFToken(isIframe);
     
     const response = NextResponse.json({
       success: true,

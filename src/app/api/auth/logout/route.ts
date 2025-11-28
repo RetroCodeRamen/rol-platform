@@ -50,17 +50,29 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] ⚠️ No user ID found, skipping status update`);
     }
 
-    console.log(`[${requestId}] Clearing user session...`);
-    await clearUserSession();
+    // Detect iframe context
+    const isIframe = request.headers.get('x-iframe-context') === 'true' || 
+                     request.nextUrl.searchParams.get('iframe') === 'true';
+    
+    console.log(`[${requestId}] Clearing user session...`, isIframe ? '(iframe context)' : '(normal context)');
+    await clearUserSession(isIframe);
     console.log(`[${requestId}] ✅ Session cleared via clearUserSession()`);
 
     const response = NextResponse.json({ success: true });
     
     // Explicitly clear cookies in the response headers as well
-    // Use same configuration as login route
-    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
-                      process.env.USE_SECURE_COOKIES !== 'false';
-    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    // Use same configuration as login route (iframe-aware)
+    let useSecure: boolean;
+    let sameSite: 'strict' | 'lax' | 'none';
+    
+    if (isIframe) {
+      useSecure = true;
+      sameSite = 'none';
+    } else {
+      useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                  process.env.USE_SECURE_COOKIES !== 'false';
+      sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    }
     console.log(`[${requestId}] Setting empty cookies on response (secure: ${useSecure}, sameSite: ${sameSite})...`);
     response.cookies.set('rol_session', '', {
       httpOnly: true,

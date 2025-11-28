@@ -9,19 +9,23 @@ export async function generateCSRFToken(): Promise<string> {
   return crypto.randomBytes(CSRF_TOKEN_LENGTH).toString('hex');
 }
 
-export async function setCSRFToken(): Promise<string> {
+export async function setCSRFToken(isIframe: boolean = false): Promise<string> {
   const token = await generateCSRFToken();
   const cookieStore = await cookies();
   
-  // In production, check if we're behind a proxy (common with reverse proxies)
-  // If USE_SECURE_COOKIES is explicitly false, don't use secure flag
-  // This helps with development/staging environments behind proxies
-  const useSecure = process.env.NODE_ENV === 'production' && 
-                    process.env.USE_SECURE_COOKIES !== 'false';
+  // For iframe embedding, we MUST use SameSite=None with Secure=true
+  let useSecure: boolean;
+  let sameSite: 'strict' | 'lax' | 'none';
   
-  // Use 'lax' instead of 'strict' for better compatibility with redirects and proxies
-  // 'lax' still provides CSRF protection but is more forgiving
-  const sameSite = process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax';
+  if (isIframe) {
+    useSecure = true;
+    sameSite = 'none';
+  } else {
+    // Normal context: use environment-based settings
+    useSecure = process.env.NODE_ENV === 'production' && 
+                process.env.USE_SECURE_COOKIES !== 'false';
+    sameSite = process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax';
+  }
   
   cookieStore.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // Must be readable by JavaScript for client-side requests

@@ -39,12 +39,22 @@ export async function verifyCredentials(username: string, password: string): Pro
   }
 }
 
-export async function setUserSession(userId: string): Promise<void> {
+export async function setUserSession(userId: string, isIframe: boolean = false): Promise<void> {
   const cookieStore = await cookies();
-  // Allow explicit override for production behind proxies
-  const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
-                    process.env.USE_SECURE_COOKIES !== 'false';
-  const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+  
+  // For iframe embedding, we MUST use SameSite=None with Secure=true
+  let useSecure: boolean;
+  let sameSite: 'strict' | 'lax' | 'none';
+  
+  if (isIframe) {
+    useSecure = true;
+    sameSite = 'none';
+  } else {
+    // Normal context: use environment-based settings
+    useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                process.env.USE_SECURE_COOKIES !== 'false';
+    sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+  }
   
   // Generate session token (not just userId for additional security)
   const sessionToken = crypto.randomBytes(32).toString('hex');
@@ -70,15 +80,25 @@ export async function setUserSession(userId: string): Promise<void> {
   });
 }
 
-export async function clearUserSession(): Promise<void> {
+export async function clearUserSession(isIframe: boolean = false): Promise<void> {
   const logId = `CLEAR-${Date.now()}`;
   console.log(`\n[${logId}] ========== clearUserSession() START ==========`);
   
   try {
     const cookieStore = await cookies();
-    const useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
-                      process.env.USE_SECURE_COOKIES !== 'false';
-    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    
+    // For iframe embedding, we MUST use SameSite=None with Secure=true
+    let useSecure: boolean;
+    let sameSite: 'strict' | 'lax' | 'none';
+    
+    if (isIframe) {
+      useSecure = true;
+      sameSite = 'none';
+    } else {
+      useSecure = (process.env.NODE_ENV === 'production' || process.env.USE_SECURE_COOKIES === 'true') &&
+                  process.env.USE_SECURE_COOKIES !== 'false';
+      sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax';
+    }
     
     // Check cookies before clearing
     const sessionBefore = cookieStore.get('rol_session');
