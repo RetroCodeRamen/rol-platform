@@ -17,6 +17,25 @@ export interface IFolderInfo {
   unreadCount: number;
 }
 
+export interface IMailFilter {
+  id: string;
+  name: string;
+  enabled: boolean;
+  conditions: {
+    field: 'from' | 'to' | 'subject' | 'body';
+    operator: 'contains' | 'equals' | 'startsWith' | 'endsWith';
+    value: string;
+  }[];
+  actions: {
+    moveToFolder?: 'Inbox' | 'Sent' | 'Drafts' | 'Trash';
+    markAsRead?: boolean;
+    delete?: boolean;
+  };
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IMailService {
   getFolders(): Promise<IFolderInfo[]>;
   getFolder(folder: IMessage['folder']): Promise<IMessage[]>;
@@ -24,6 +43,11 @@ export interface IMailService {
   sendMessage(message: Omit<IMessage, 'id' | 'date' | 'read' | 'folder'>): Promise<IMessage>;
   markRead(id: string, read: boolean): Promise<void>;
   moveToFolder(id: string, folder: IMessage['folder']): Promise<void>;
+  search(query: string, folder?: IMessage['folder']): Promise<IMessage[]>;
+  getFilters(): Promise<IMailFilter[]>;
+  createFilter(filter: Omit<IMailFilter, 'id' | 'createdAt' | 'updatedAt'>): Promise<IMailFilter>;
+  updateFilter(id: string, filter: Partial<IMailFilter>): Promise<IMailFilter>;
+  deleteFilter(id: string): Promise<void>;
 }
 
 // Helper function to make authenticated API requests
@@ -152,6 +176,73 @@ export class RestMailService implements IMailService {
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || 'Failed to move message');
+    }
+  }
+
+  async search(query: string, folder?: IMessage['folder']): Promise<IMessage[]> {
+    const params = new URLSearchParams({ q: query });
+    if (folder) {
+      params.append('folder', folder);
+    }
+    const response = await fetchWithAuth(`${this.apiBase}/search?${params.toString()}`);
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to search messages');
+    }
+    return data.messages.map((msg: any) => ({
+      id: msg.id,
+      folder: msg.folder,
+      from: msg.from,
+      to: msg.to,
+      cc: msg.cc,
+      bcc: msg.bcc,
+      subject: msg.subject,
+      body: msg.body,
+      date: msg.createdAt,
+      read: msg.isRead,
+    }));
+  }
+
+  async getFilters(): Promise<IMailFilter[]> {
+    const response = await fetchWithAuth(`${this.apiBase}/filters`);
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch filters');
+    }
+    return data.filters;
+  }
+
+  async createFilter(filter: Omit<IMailFilter, 'id' | 'createdAt' | 'updatedAt'>): Promise<IMailFilter> {
+    const response = await fetchWithAuth(`${this.apiBase}/filters`, {
+      method: 'POST',
+      body: JSON.stringify(filter),
+    });
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to create filter');
+    }
+    return data.filter;
+  }
+
+  async updateFilter(id: string, filter: Partial<IMailFilter>): Promise<IMailFilter> {
+    const response = await fetchWithAuth(`${this.apiBase}/filters/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(filter),
+    });
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update filter');
+    }
+    return data.filter;
+  }
+
+  async deleteFilter(id: string): Promise<void> {
+    const response = await fetchWithAuth(`${this.apiBase}/filters/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to delete filter');
     }
   }
 }

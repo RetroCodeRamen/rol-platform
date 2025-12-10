@@ -3,6 +3,7 @@ import { addSecurityHeaders } from '@/lib/security/headers';
 import { getUserIdFromSession } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongoose';
 import MailMessage from '@/lib/db/models/MailMessage';
+import { applyFilters } from '@/lib/mail/filterEngine';
 import User from '@/lib/db/models/User';
 
 // Parse comma-separated email addresses
@@ -147,19 +148,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create message in each recipient's Inbox
+    // Create message in each recipient's Inbox (apply filters)
     const inboxMessages = await Promise.all(
       recipientUserIds.map(async (recipientId) => {
+        // Apply filters to determine folder and read status
+        const filteredMessage = await applyFilters(recipientId, {
+          from: fromAddress,
+          to: toAddresses.join(', '),
+          subject,
+          body: messageBody,
+          folder: 'Inbox',
+          isRead: false,
+        });
+
         return await MailMessage.create({
           ownerUserId: recipientId,
-          folder: 'Inbox',
+          folder: filteredMessage.folder || 'Inbox',
           from: fromAddress,
           to: toAddresses.join(', '),
           cc: ccAddresses.length > 0 ? ccAddresses.join(', ') : undefined,
           bcc: bccAddresses.length > 0 ? bccAddresses.join(', ') : undefined,
           subject,
           body: messageBody,
-          isRead: false,
+          isRead: filteredMessage.isRead !== undefined ? filteredMessage.isRead : false,
         });
       })
     );

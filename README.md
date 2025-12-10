@@ -27,7 +27,6 @@ A nostalgic web-based reimplementation of classic AOL (5.0/6.0 era) as a single-
 - **React** - UI library
 
 ## Getting Started
-## Getting Started
 
 ### Prerequisites
 

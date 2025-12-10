@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/state/store';
-import { AppMessageHandler } from '@/lib/messaging/AppMessageHandler';
 import { chatService } from '@/services/ChatService';
 import { notificationService } from '@/services/NotificationService';
 import { getSocket } from '@/lib/websocket/client';
@@ -105,8 +104,23 @@ export default function IMWindow({ window }: IMWindowProps) {
         // Play sound notification
         SoundService.play('new_im');
         
-        // Reload thread to show new message
-        loadThread();
+        // Optimistically add message to thread
+        if (currentThread) {
+          const newMessage: IIMMessage = {
+            id: message.id,
+            from: message.from,
+            to: message.to,
+            message: message.message,
+            timestamp: message.timestamp,
+          };
+          setCurrentThread({
+            ...currentThread,
+            messages: [...currentThread.messages, newMessage],
+          });
+        }
+        
+        // Also reload from server to ensure consistency
+        setTimeout(() => loadThread(), 100);
         
         // Show notification
         notificationService.notifyNewIM(message, currentUser?.username || '');
@@ -115,21 +129,64 @@ export default function IMWindow({ window }: IMWindowProps) {
 
     // Listen for sent message confirmation
     const handleSentMessage = (message: IIMMessage) => {
+      console.log('[IMWindow] Received im:sent event:', message);
       // Reload thread if this message is for current participant
-      if (message.to === participant) {
-        loadThread();
+      if (message.to === participant || message.from === currentUser?.username) {
+        // Replace optimistic message with real message
+        if (currentThread) {
+          // Remove any temp messages and add the real one
+          const filteredMessages = currentThread.messages.filter(m => !m.id.startsWith('temp_'));
+          const newMessage: IIMMessage = {
+            id: message.id,
+            from: message.from,
+            to: message.to,
+            message: message.message,
+            timestamp: message.timestamp,
+          };
+          // Check if message already exists (avoid duplicates)
+          const exists = filteredMessages.some(m => m.id === message.id);
+          if (!exists) {
+            setCurrentThread({
+              ...currentThread,
+              messages: [...filteredMessages, newMessage],
+            });
+          }
+        }
+        // Also reload from server to ensure consistency
+        setTimeout(() => loadThread(), 200);
+      }
+    };
+
+    // Listen for errors
+    const handleError = (error: { error: string }) => {
+      console.error('[IMWindow] Socket error:', error);
+      dispatchMessage('SYSTEM_ALERT', {
+        message: error.error || 'Failed to send message',
+        title: 'Error',
+      });
+      // Remove optimistic message on error
+      if (currentThread) {
+        setCurrentThread({
+          ...currentThread,
+          messages: currentThread.messages.filter(m => !m.id.startsWith('temp_')),
+        });
       }
     };
 
     socket.on('im:new', handleNewMessage);
     socket.on('im:sent', handleSentMessage);
+    socket.on('im:error', handleError);
+
+    // Debug: Log socket connection status
+    console.log('[IMWindow] Socket connected:', socket.connected, 'for participant:', participant);
 
     return () => {
       socket.off('im:new', handleNewMessage);
       socket.off('im:sent', handleSentMessage);
+      socket.off('im:error', handleError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participant, currentUser]);
+  }, [participant, currentUser, currentThread]);
 
   // Early return after all hooks
   if (!window || !participant) {
@@ -189,25 +246,57 @@ export default function IMWindow({ window }: IMWindowProps) {
     setPendingAttachments([]);
 
     try {
+      // Optimistically add message to UI immediately
+      if (currentThread && currentUser) {
+        const optimisticMessage: IIMMessage = {
+          id: `temp_${Date.now()}`,
+          from: currentUser.username,
+          to: participant,
+          message: messageText,
+          timestamp: new Date().toISOString(),
+        };
+        setCurrentThread({
+          ...currentThread,
+          messages: [...currentThread.messages, optimisticMessage],
+        });
+      }
+
       // Try WebSocket first for real-time delivery
       const socket = getSocket();
       if (socket?.connected) {
+        console.log('[IMWindow] Sending via WebSocket to:', participant);
         socket.emit('im:send', {
           to: participant,
           message: messageText,
           attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
         });
-        // Message will be confirmed via 'im:sent' event
+        // Message will be confirmed via 'im:sent' event and replaced with real message
+        // If no confirmation after 2 seconds, reload thread as fallback
+        setTimeout(() => {
+          if (currentThread?.messages.some(m => m.id.startsWith('temp_'))) {
+            console.log('[IMWindow] No confirmation received, reloading thread');
+            loadThread();
+          }
+        }, 2000);
       } else {
+        console.warn('[IMWindow] Socket not connected, using REST API fallback');
         // Fallback to REST API
         await chatService.sendIMMessage(participant, messageText, currentUser.username, attachmentIds.length > 0 ? attachmentIds : undefined);
-        loadThread();
+        // Reload thread after sending
+        await loadThread();
       }
     } catch (error) {
       console.error('Failed to send IM:', error);
       // Restore message on error
       setInputMessage(messageText);
       setPendingAttachments(pendingAttachments);
+      // Remove optimistic message on error
+      if (currentThread) {
+        setCurrentThread({
+          ...currentThread,
+          messages: currentThread.messages.filter(m => !m.id.startsWith('temp_')),
+        });
+      }
     }
   };
 

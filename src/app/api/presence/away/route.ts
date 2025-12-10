@@ -4,6 +4,41 @@ import { getUserIdFromSession } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongoose';
 import User from '@/lib/db/models/User';
 
+export async function GET(request: NextRequest) {
+  try {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return addSecurityHeaders(
+        NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      );
+    }
+
+    await dbConnect();
+
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      return addSecurityHeaders(
+        NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+      );
+    }
+
+    return addSecurityHeaders(
+      NextResponse.json({
+        success: true,
+        awayStatus: user.awayStatus || 'available',
+        awayMessage: user.awayMessage || '',
+      })
+    );
+  } catch (error: any) {
+    return addSecurityHeaders(
+      NextResponse.json(
+        { success: false, error: 'Failed to fetch away status' },
+        { status: 500 }
+      )
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromSession();

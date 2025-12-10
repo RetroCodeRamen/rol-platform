@@ -7,6 +7,7 @@ import { notificationService } from '@/services/NotificationService';
 import type { IMessage } from '@/services/MailService';
 import MessageView from './MessageView';
 import ComposeView from './ComposeView';
+import FilterManager from './FilterManager';
 
 type Folder = 'Inbox' | 'Sent' | 'Drafts' | 'Trash';
 type ViewMode = 'list' | 'message' | 'compose';
@@ -26,6 +27,14 @@ export default function MailboxView() {
   });
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<IMessage[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchField, setSearchField] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   
   const messages = useAppStore((state) => state.messages);
   const setMessages = useAppStore((state) => state.setMessages);
@@ -33,8 +42,12 @@ export default function MailboxView() {
   const currentUser = useAppStore((state) => state.currentUser);
 
   useEffect(() => {
-    loadFolder();
-  }, [currentFolder]);
+    if (!searchQuery.trim()) {
+      loadFolder();
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [currentFolder, searchQuery]);
 
   useEffect(() => {
     // Check for new mail and trigger notifications
@@ -67,8 +80,84 @@ export default function MailboxView() {
     await loadFolder();
   };
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    
+    // Allow search even without query if date range is specified
+    if (!query && !fromDate && !toDate) {
+      setSearchResults([]);
+      setIsSearching(false);
+      await loadFolder();
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Build search URL with advanced options
+      const params = new URLSearchParams({ q: query || '' });
+      if (currentFolder) {
+        params.append('folder', currentFolder);
+      }
+      if (searchField && searchField !== 'all') {
+        params.append('field', searchField);
+      }
+      if (fromDate) {
+        params.append('fromDate', fromDate);
+      }
+      if (toDate) {
+        params.append('toDate', toDate);
+      }
+
+      const response = await fetch(`/api/mail/search?${params.toString()}`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Search failed');
+      }
+      setSearchResults(
+        data.messages.map((msg: any) => ({
+          id: msg.id,
+          folder: msg.folder,
+          from: msg.from,
+          to: msg.to,
+          cc: msg.cc,
+          bcc: msg.bcc,
+          subject: msg.subject,
+          body: msg.body,
+          date: msg.createdAt,
+          read: msg.isRead,
+        }))
+      );
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearching(false);
+    setSearchField('all');
+    setFromDate('');
+    setToDate('');
+    setShowAdvancedSearch(false);
+    loadFolder();
+  };
+
   const folderMessages = messages.filter((msg) => msg.folder === currentFolder);
   const unreadCount = folderMessages.filter((msg) => !msg.read).length;
+  
+  // Use search results if searching, otherwise use folder messages
+  const displayMessages = isSearching || searchResults.length > 0 ? searchResults : folderMessages;
+
+  if (showFilters) {
+    return <FilterManager onClose={() => setShowFilters(false)} />;
+  }
 
   if (viewMode === 'compose') {
     return <ComposeView onClose={() => {
@@ -113,7 +202,92 @@ export default function MailboxView() {
           >
             Compose
           </button>
+          <button
+            onClick={() => setShowFilters(true)}
+            className="px-2 py-0.5 bg-gray-200 text-gray-900 text-xs font-semibold border border-gray-400 hover:bg-gray-300"
+            style={{ boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+          >
+            Filters
+          </button>
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="px-2 py-1.5 border-b border-blue-300" style={{ backgroundColor: '#cce5ff' }}>
+        <form onSubmit={handleSearch} className="space-y-2">
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search mail..."
+              className="flex-1 px-2 py-1 text-xs border border-gray-400 rounded bg-white"
+              style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.1)' }}
+            />
+            <button
+              type="submit"
+              disabled={isSearching || (!searchQuery.trim() && !fromDate && !toDate)}
+              className="px-2 py-1 bg-gray-200 text-gray-900 text-xs font-semibold border border-gray-400 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+            >
+              {isSearching ? 'Searching...' : 'Search'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className="px-2 py-1 bg-gray-200 text-gray-900 text-xs font-semibold border border-gray-400 hover:bg-gray-300"
+              style={{ boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+            >
+              {showAdvancedSearch ? 'Simple' : 'Advanced'}
+            </button>
+            {(searchQuery.trim() || searchResults.length > 0 || fromDate || toDate) && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="px-2 py-1 bg-red-200 text-red-800 text-xs font-semibold border border-red-400 hover:bg-red-300"
+                style={{ boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)' }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {showAdvancedSearch && (
+            <div className="flex gap-2 items-center flex-wrap">
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">Field:</label>
+                <select
+                  value={searchField}
+                  onChange={(e) => setSearchField(e.target.value)}
+                  className="px-1 py-0.5 text-xs border border-gray-400 rounded bg-white"
+                >
+                  <option value="all">All Fields</option>
+                  <option value="from">From</option>
+                  <option value="to">To</option>
+                  <option value="subject">Subject</option>
+                  <option value="body">Body</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">From:</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="px-1 py-0.5 text-xs border border-gray-400 rounded bg-white"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">To:</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="px-1 py-0.5 text-xs border border-gray-400 rounded bg-white"
+                />
+              </div>
+            </div>
+          )}
+        </form>
       </div>
 
       {/* Folder Tabs */}
@@ -143,13 +317,22 @@ export default function MailboxView() {
 
       {/* Message List */}
       <div className="flex-1 overflow-y-auto retro-scrollbar">
-        {isLoading && folderMessages.length === 0 ? (
+        {isSearching ? (
+          <div className="p-4 text-center text-gray-500">Searching...</div>
+        ) : isLoading && displayMessages.length === 0 ? (
           <div className="p-4 text-center text-gray-500">Loading...</div>
-        ) : folderMessages.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No messages in {currentFolder}</div>
+        ) : displayMessages.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            {searchQuery.trim() ? `No results found for "${searchQuery}"` : `No messages in ${currentFolder}`}
+          </div>
         ) : (
           <div className="divide-y divide-gray-300">
-            {folderMessages.map((message) => (
+            {searchQuery.trim() && searchResults.length > 0 && (
+              <div className="px-3 py-2 bg-yellow-50 border-b border-yellow-200 text-xs text-gray-700">
+                Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;
+              </div>
+            )}
+            {displayMessages.map((message) => (
               <button
                 key={message.id}
                 onClick={() => handleMessageClick(message.id)}

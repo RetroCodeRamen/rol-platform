@@ -343,13 +343,13 @@ export default function WindowComponent({ window: windowData, children, icon }: 
           ) : (
             // Modern buttons for AOL 7.0-9.0 (adjusted for thicker bar)
             <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  minimizeWindow(windowData.id);
-                }}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              minimizeWindow(windowData.id);
+            }}
                 className="flex items-center justify-center text-xs font-bold hover:bg-blue-800 border border-blue-900 bg-blue-700 text-white"
-                title="Minimize"
+            title="Minimize"
                 style={{
                   width: '20px',
                   height: '18px',
@@ -357,16 +357,16 @@ export default function WindowComponent({ window: windowData, children, icon }: 
                   padding: 0,
                   margin: '0 1px',
                 }}
-              >
-                _
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeWindow(windowData.id);
-                }}
+          >
+            _
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              closeWindow(windowData.id);
+            }}
                 className="flex items-center justify-center text-xs font-bold hover:bg-red-600 border border-red-800 bg-red-700 text-white"
-                title="Close"
+            title="Close"
                 style={{
                   width: '20px',
                   height: '18px',
@@ -374,9 +374,9 @@ export default function WindowComponent({ window: windowData, children, icon }: 
                   padding: 0,
                   margin: '0 1px',
                 }}
-              >
-                ×
-              </button>
+          >
+            ×
+          </button>
             </>
           )}
         </div>

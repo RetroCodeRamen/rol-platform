@@ -45,6 +45,12 @@ export default function BuddyList() {
   const [showAddBuddyModal, setShowAddBuddyModal] = useState(false);
   const [newBuddyUsername, setNewBuddyUsername] = useState('');
   const [addingBuddy, setAddingBuddy] = useState(false);
+  const [showMyAIMDropdown, setShowMyAIMDropdown] = useState(false);
+  const [showAwayMessageDialog, setShowAwayMessageDialog] = useState(false);
+  const [awayStatus, setAwayStatus] = useState<'available' | 'away'>('available');
+  const [awayMessage, setAwayMessage] = useState('');
+  const [savingAway, setSavingAway] = useState(false);
+  const myAIMDropdownRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const currentUser = useAppStore((state) => state.currentUser);
   const openWindow = useAppStore((state) => state.openWindow);
@@ -70,13 +76,89 @@ export default function BuddyList() {
       if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
         setContextMenu(null);
       }
+      if (myAIMDropdownRef.current && !myAIMDropdownRef.current.contains(event.target as Node)) {
+        setShowMyAIMDropdown(false);
+      }
     };
 
-    if (contextMenu) {
+    if (contextMenu || showMyAIMDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [contextMenu]);
+  }, [contextMenu, showMyAIMDropdown]);
+
+  // Load away status on mount
+  useEffect(() => {
+    loadAwayStatus();
+  }, []);
+
+  const loadAwayStatus = async () => {
+    try {
+      const response = await fetch('/api/presence/away', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data.success) {
+        const status = data.awayStatus || 'available';
+        setAwayStatus(status === 'available' ? 'available' : 'away');
+        setAwayMessage(data.awayMessage || '');
+      }
+    } catch (error) {
+      console.error('Failed to load away status:', error);
+    }
+  };
+
+  const handleOpenProfile = () => {
+    setShowMyAIMDropdown(false);
+    if (currentUser?.username) {
+      openWindow('profile', 'My Profile', {
+        username: currentUser.username,
+        editable: true,
+      });
+    }
+  };
+
+  const handleOpenAwayMessage = () => {
+    setShowMyAIMDropdown(false);
+    setShowAwayMessageDialog(true);
+  };
+
+  const handleSaveAwayStatus = async () => {
+    setSavingAway(true);
+    try {
+      const response = await fetch('/api/presence/away', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          awayStatus,
+          awayMessage: awayMessage.trim(),
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setShowAwayMessageDialog(false);
+        dispatchMessage('SYSTEM_ALERT', {
+          message: 'Away status updated successfully!',
+          title: 'Status Updated',
+        });
+        loadAwayStatus(); // Reload to refresh buddy list
+      } else {
+        dispatchMessage('SYSTEM_ALERT', {
+          message: data.error || 'Failed to update away status',
+          title: 'Error',
+        });
+      }
+    } catch (error: any) {
+      dispatchMessage('SYSTEM_ALERT', {
+        message: error.message || 'Failed to update away status',
+        title: 'Error',
+      });
+    } finally {
+      setSavingAway(false);
+    }
+  };
 
   const pingPresence = async () => {
     try {
@@ -910,7 +992,7 @@ export default function BuddyList() {
       }}>
         {/* AIM Banner - Dark Blue Gradient */}
         <div 
-          className="flex items-center justify-center px-3"
+          className="flex items-center justify-between px-3"
           style={{
             height: '70px',
             background: 'linear-gradient(to bottom, #003366, #001a33)',
@@ -930,6 +1012,38 @@ export default function BuddyList() {
             <div className="text-white" style={{ fontSize: '14px', fontWeight: 'bold' }}>
               Ramen Online Instant Messenger
             </div>
+          </div>
+          
+          {/* My AIM Dropdown */}
+          <div className="relative" ref={myAIMDropdownRef}>
+            <button
+              onClick={() => setShowMyAIMDropdown(!showMyAIMDropdown)}
+              className="text-white hover:bg-blue-800 px-3 py-1 rounded text-sm font-semibold"
+              style={{ fontSize: '12px' }}
+            >
+              My AIM ▼
+            </button>
+            {showMyAIMDropdown && (
+              <div
+                className="absolute right-0 mt-1 bg-white border-2 border-gray-400 shadow-lg z-50"
+                style={{ minWidth: '180px' }}
+              >
+                <button
+                  onClick={handleOpenProfile}
+                  className="w-full text-left px-3 py-2 hover:bg-blue-100 text-sm text-gray-800"
+                  style={{ fontSize: '11px' }}
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={handleOpenAwayMessage}
+                  className="w-full text-left px-3 py-2 hover:bg-blue-100 text-sm text-gray-800 border-t border-gray-300"
+                  style={{ fontSize: '11px' }}
+                >
+                  Set Away Message
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1146,6 +1260,80 @@ export default function BuddyList() {
                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                   >
                     {addingBuddy ? 'Adding...' : 'Add'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Away Message Dialog */}
+        {showAwayMessageDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white border-2 border-gray-400 shadow-lg" style={{ width: '400px' }}>
+              <div className="bg-blue-600 text-white px-3 py-1 font-semibold text-sm">
+                Set Away Message
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <div className="flex gap-3">
+                    {(['available', 'away'] as const).map((status) => (
+                      <label
+                        key={status}
+                        className={`flex items-center p-2 border-2 rounded cursor-pointer flex-1 ${
+                          awayStatus === status
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 bg-white'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="awayStatus"
+                          value={status}
+                          checked={awayStatus === status}
+                          onChange={(e) => setAwayStatus(e.target.value as 'available' | 'away')}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-medium capitalize">{status}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Away Message (optional)
+                  </label>
+                  <textarea
+                    value={awayMessage}
+                    onChange={(e) => setAwayMessage(e.target.value)}
+                    placeholder="e.g., 'Be back in 30 minutes!'"
+                    className="w-full p-2 border-2 border-gray-300 rounded text-sm resize-none"
+                    rows={3}
+                    maxLength={200}
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {awayMessage.length}/200 characters
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setShowAwayMessageDialog(false);
+                      loadAwayStatus(); // Reset to current values
+                    }}
+                    className="px-4 py-1 text-sm border-2 border-gray-400 bg-gray-200 hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveAwayStatus}
+                    disabled={savingAway}
+                    className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {savingAway ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </div>
