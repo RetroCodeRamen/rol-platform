@@ -204,14 +204,14 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
         await mailService.updateFilter(filter.id, {
           name,
           enabled,
-          conditions,
+          conditions: conditions as any,
           actions,
         });
       } else {
         await mailService.createFilter({
           name,
           enabled,
-          conditions,
+          conditions: conditions as any,
           actions,
           order: 0,
         });
