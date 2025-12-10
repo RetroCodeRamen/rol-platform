@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { addSecurityHeaders } from '@/lib/security/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rateLimit';
-import { validateAndSanitize, registerSchema, sanitizeString } from '@/lib/security/validation';
+import { validateAndSanitize, registerSchema, sanitizeString, escapeRegex } from '@/lib/security/validation';
 import { validateCSRFToken } from '@/lib/security/csrf';
 import dbConnect from '@/lib/db/mongoose';
 import User, { IUser } from '@/lib/db/models/User';
@@ -90,10 +90,12 @@ export async function POST(request: NextRequest) {
     // Check if user already exists (use case-insensitive comparison)
     console.log(`[${requestId}] Checking for existing user...`);
     try {
+      // Escape regex to prevent ReDoS attacks
+      const escapedScreenName = escapeRegex(sanitizedScreenName);
       const existingUser = await User.findOne({
         $or: [
           { username: sanitizedUsername },
-          { screenName: { $regex: new RegExp(`^${sanitizedScreenName}$`, 'i') } },
+          { screenName: { $regex: new RegExp(`^${escapedScreenName}$`, 'i') } },
           { email: sanitizedEmail },
         ],
       });

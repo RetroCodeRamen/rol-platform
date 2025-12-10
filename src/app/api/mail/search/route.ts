@@ -3,6 +3,7 @@ import { addSecurityHeaders } from '@/lib/security/headers';
 import { getUserIdFromSession } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongoose';
 import MailMessage from '@/lib/db/models/MailMessage';
+import { escapeRegex } from '@/lib/security/validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get('q')?.trim();
+    let query = searchParams.get('q')?.trim();
     const folder = searchParams.get('folder'); // Optional: search in specific folder
     const fromDate = searchParams.get('fromDate'); // Optional: date range start
     const toDate = searchParams.get('toDate'); // Optional: date range end
@@ -23,6 +24,17 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const skip = (page - 1) * limit;
+
+    // Input length limits to prevent DoS attacks
+    const MAX_QUERY_LENGTH = 500;
+    if (query && query.length > MAX_QUERY_LENGTH) {
+      return addSecurityHeaders(
+        NextResponse.json(
+          { success: false, error: `Search query exceeds maximum length of ${MAX_QUERY_LENGTH} characters` },
+          { status: 400 }
+        )
+      );
+    }
 
     // Allow search with date range even without query
     if ((!query || query.length === 0) && !fromDate && !toDate) {
@@ -43,16 +55,19 @@ export async function GET(request: NextRequest) {
 
     // Build search query conditions
     if (query && query.length > 0) {
+      // Escape regex special characters to prevent ReDoS attacks
+      const escapedQuery = escapeRegex(query);
+      
       if (searchField && ['from', 'to', 'subject', 'body'].includes(searchField)) {
         // Search in specific field
-        searchFilter[searchField] = { $regex: query, $options: 'i' };
+        searchFilter[searchField] = { $regex: escapedQuery, $options: 'i' };
       } else {
         // Search in all fields
         searchFilter.$or = [
-          { subject: { $regex: query, $options: 'i' } },
-          { from: { $regex: query, $options: 'i' } },
-          { to: { $regex: query, $options: 'i' } },
-          { body: { $regex: query, $options: 'i' } },
+          { subject: { $regex: escapedQuery, $options: 'i' } },
+          { from: { $regex: escapedQuery, $options: 'i' } },
+          { to: { $regex: escapedQuery, $options: 'i' } },
+          { body: { $regex: escapedQuery, $options: 'i' } },
         ];
       }
     }
@@ -99,6 +114,8 @@ export async function GET(request: NextRequest) {
           createdAt: msg.createdAt.toISOString(),
           readAt: msg.readAt?.toISOString(),
           isRead: msg.isRead,
+          hasAttachments: msg.attachments && Array.isArray(msg.attachments) && msg.attachments.length > 0,
+          attachmentCount: msg.attachments && Array.isArray(msg.attachments) ? msg.attachments.length : 0,
         })),
         pagination: {
           page,

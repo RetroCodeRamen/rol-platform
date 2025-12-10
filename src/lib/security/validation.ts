@@ -59,6 +59,14 @@ export function sanitizeString(input: string): string {
     .replace(/on\w+=/gi, ''); // Remove event handlers
 }
 
+/**
+ * Escape special regex characters to prevent ReDoS attacks
+ * Use this when using user input in MongoDB $regex queries
+ */
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // Validate and sanitize input
 export function validateAndSanitize<T>(
   schema: z.ZodSchema<T>,

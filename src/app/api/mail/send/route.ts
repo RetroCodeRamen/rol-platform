@@ -5,6 +5,8 @@ import dbConnect from '@/lib/db/mongoose';
 import MailMessage from '@/lib/db/models/MailMessage';
 import { applyFilters } from '@/lib/mail/filterEngine';
 import User from '@/lib/db/models/User';
+import FileAttachment from '@/lib/db/models/FileAttachment';
+import { escapeRegex } from '@/lib/security/validation';
 
 // Parse comma-separated email addresses
 function parseEmailAddresses(addresses: string): string[] {
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     const fromAddress = `${sender.username}@ramn.online`;
 
     const body = await request.json();
-    const { to, cc, bcc, subject, body: messageBody } = body;
+    const { to, cc, bcc, subject, body: messageBody, attachmentIds } = body;
 
     // Validate required fields
     if (!to || !subject || !messageBody) {
@@ -65,6 +67,27 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       );
+    }
+
+    // Validate and process attachments if provided
+    let attachmentObjectIds: any[] = [];
+    if (attachmentIds && Array.isArray(attachmentIds) && attachmentIds.length > 0) {
+      // Validate attachment IDs belong to user
+      const attachments = await FileAttachment.find({
+        _id: { $in: attachmentIds },
+        uploadedBy: userId,
+      });
+      
+      if (attachments.length !== attachmentIds.length) {
+        return addSecurityHeaders(
+          NextResponse.json(
+            { success: false, error: 'Invalid attachment IDs or access denied' },
+            { status: 400 }
+          )
+        );
+      }
+      
+      attachmentObjectIds = attachments.map(att => att._id);
     }
 
     // Parse recipient addresses
@@ -101,11 +124,13 @@ export async function POST(request: NextRequest) {
           // Username and screenName are interchangeable
           const username = extractUsernameFromEmail(email);
           if (username) {
+            // Escape regex to prevent ReDoS attacks
+            const escapedUsername = escapeRegex(username);
             // Try both username and screenName fields (they should match, but check both for safety)
             user = await User.findOne({ 
               $or: [
                 { username: username.toLowerCase() },
-                { screenName: { $regex: new RegExp(`^${username}$`, 'i') } }
+                { screenName: { $regex: new RegExp(`^${escapedUsername}$`, 'i') } }
               ]
             });
           }
@@ -171,6 +196,7 @@ export async function POST(request: NextRequest) {
           subject,
           body: messageBody,
           isRead: filteredMessage.isRead !== undefined ? filteredMessage.isRead : false,
+          attachments: attachmentObjectIds.length > 0 ? attachmentObjectIds : undefined,
         });
       })
     );
@@ -186,6 +212,7 @@ export async function POST(request: NextRequest) {
       subject,
       body: messageBody,
       isRead: true, // Sent messages are marked as read
+      attachments: attachmentObjectIds.length > 0 ? attachmentObjectIds : undefined,
     });
 
     // TODO: Future SendGrid integration point

@@ -71,6 +71,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Input length limits to prevent DoS attacks
+    const MAX_FILTER_NAME_LENGTH = 100;
+    const MAX_CONDITION_VALUE_LENGTH = 200;
+    
+    if (name.trim().length > MAX_FILTER_NAME_LENGTH) {
+      return addSecurityHeaders(
+        NextResponse.json(
+          { success: false, error: `Filter name exceeds maximum length of ${MAX_FILTER_NAME_LENGTH} characters` },
+          { status: 400 }
+        )
+      );
+    }
+
     if (!Array.isArray(conditions) || conditions.length === 0) {
       return addSecurityHeaders(
         NextResponse.json(
@@ -102,6 +115,15 @@ export async function POST(request: NextRequest) {
         return addSecurityHeaders(
           NextResponse.json(
             { success: false, error: 'Condition value is required' },
+            { status: 400 }
+          )
+        );
+      }
+      // Check condition value length
+      if (condition.value.length > MAX_CONDITION_VALUE_LENGTH) {
+        return addSecurityHeaders(
+          NextResponse.json(
+            { success: false, error: `Condition value exceeds maximum length of ${MAX_CONDITION_VALUE_LENGTH} characters` },
             { status: 400 }
           )
         );

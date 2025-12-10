@@ -69,10 +69,27 @@ export default function MailboxView() {
   };
 
   const handleMessageClick = async (messageId: string) => {
-    setSelectedMessageId(messageId);
-    setViewMode('message');
-    await mailService.markRead(messageId, true);
-    updateMessage(messageId, { read: true });
+    // Fetch full message with attachments first
+    try {
+      const fullMessage = await mailService.getMessage(messageId);
+      if (fullMessage) {
+        // Update the message in store with full data including attachments
+        updateMessage(messageId, fullMessage);
+        // Mark as read
+        await mailService.markRead(messageId, true);
+        updateMessage(messageId, { read: true });
+        // Now set view mode to show the message
+        setSelectedMessageId(messageId);
+        setViewMode('message');
+      } else {
+        console.error('Message not found');
+      }
+    } catch (error) {
+      console.error('Failed to fetch full message:', error);
+      // Still show the message even if fetch fails
+      setSelectedMessageId(messageId);
+      setViewMode('message');
+    }
   };
 
   const handleFetchNewMail = async () => {
@@ -128,6 +145,8 @@ export default function MailboxView() {
           body: msg.body,
           date: msg.createdAt,
           read: msg.isRead,
+          hasAttachments: msg.hasAttachments || false,
+          attachmentCount: msg.attachmentCount || 0,
         }))
       );
     } catch (error) {
@@ -177,6 +196,13 @@ export default function MailboxView() {
             setSelectedMessageId(null);
           }}
         />
+      );
+    } else {
+      // Message not found in store, try to fetch it
+      return (
+        <div className="p-4 text-center text-gray-500">
+          Loading message...
+        </div>
       );
     }
   }
@@ -349,8 +375,20 @@ export default function MailboxView() {
                       {!message.read && (
                         <span className="w-2 h-2 bg-blue-500 rounded-full" />
                       )}
+                      {message.hasAttachments && (
+                        <span className="text-gray-600" title={`${message.attachmentCount || 0} attachment${(message.attachmentCount || 0) !== 1 ? 's' : ''}`}>
+                          📎
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-700 mt-1 truncate">{message.subject}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="text-sm text-gray-700 truncate flex-1">{message.subject}</div>
+                      {message.hasAttachments && (
+                        <span className="text-xs text-gray-500 flex-shrink-0">
+                          {message.attachmentCount || 0}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-xs text-gray-500 ml-4">
                     {new Date(message.date).toLocaleDateString()}
