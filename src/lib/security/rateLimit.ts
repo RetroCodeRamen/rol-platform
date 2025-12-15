@@ -9,15 +9,33 @@ interface RateLimitStore {
 
 const store: RateLimitStore = {};
 
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(store).forEach((key) => {
-    if (store[key].resetTime < now) {
-      delete store[key];
+// Clean up old entries periodically - use a single interval that can be cleared
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+function startCleanupInterval() {
+  // Only start if not already running
+  if (cleanupInterval) return;
+  
+  cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    Object.keys(store).forEach((key) => {
+      if (store[key].resetTime < now) {
+        delete store[key];
+      }
+    });
+    
+    // Auto-stop interval if store is empty (save resources)
+    if (Object.keys(store).length === 0 && cleanupInterval) {
+      clearInterval(cleanupInterval);
+      cleanupInterval = null;
     }
-  });
-}, 60000); // Clean every minute
+  }, 60000); // Clean every minute
+}
+
+// Start cleanup on first use (server-side only)
+if (typeof window === 'undefined') {
+  startCleanupInterval();
+}
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -42,6 +60,11 @@ export function rateLimit(
   req: NextRequest,
   config: RateLimitConfig
 ): { allowed: boolean; remaining: number; resetTime: number } {
+  // Start cleanup interval if not running
+  if (!cleanupInterval) {
+    startCleanupInterval();
+  }
+  
   const identifier = getClientIdentifier(req);
   const now = Date.now();
   

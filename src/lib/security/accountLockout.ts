@@ -9,18 +9,37 @@ interface FailedAttempt {
 
 const failedAttempts: Map<string, FailedAttempt> = new Map();
 
-// Clean up old entries
-setInterval(() => {
-  const now = Date.now();
-  failedAttempts.forEach((attempt, key) => {
-    if (attempt.lockoutUntil && attempt.lockoutUntil < now) {
-      failedAttempts.delete(key);
-    } else if (!attempt.lockoutUntil && now - attempt.lastAttempt > 30 * 60 * 1000) {
-      // Clear attempts older than 30 minutes
-      failedAttempts.delete(key);
+// Clean up old entries - use a single interval that can be cleared
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+function startCleanupInterval() {
+  // Only start if not already running
+  if (cleanupInterval) return;
+  
+  cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    failedAttempts.forEach((attempt, key) => {
+      if (attempt.lockoutUntil && attempt.lockoutUntil < now) {
+        failedAttempts.delete(key);
+      } else if (!attempt.lockoutUntil && now - attempt.lastAttempt > 30 * 60 * 1000) {
+        // Clear attempts older than 30 minutes
+        failedAttempts.delete(key);
+      }
+    });
+    
+    // Auto-stop interval if map is empty (save resources)
+    if (failedAttempts.size === 0 && cleanupInterval) {
+      clearInterval(cleanupInterval);
+      cleanupInterval = null;
     }
-  });
-}, 60000);
+  }, 60000);
+}
+
+// Start cleanup on first use
+if (typeof window === 'undefined') {
+  // Server-side: start immediately
+  startCleanupInterval();
+}
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
@@ -29,6 +48,11 @@ const INITIAL_BACKOFF = 60 * 1000; // 1 minute
 export async function recordFailedLogin(username: string): Promise<void> {
   const key = username.toLowerCase();
   const now = Date.now();
+  
+  // Start cleanup interval if not running
+  if (!cleanupInterval) {
+    startCleanupInterval();
+  }
   
   let attempt = failedAttempts.get(key);
   

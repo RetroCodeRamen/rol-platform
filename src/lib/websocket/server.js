@@ -13,24 +13,35 @@ const userSocketMap = new Map();
 // Map of socket ID to user ID for reverse lookup
 const socketUserMap = new Map();
 
-// Connect to MongoDB helper
+// Connect to MongoDB helper - reuse existing connection pool
 async function dbConnect() {
+  // Reuse existing connection if available
   if (mongoose.connection.readyState === 1) {
     return mongoose;
   }
+  
+  // If connecting, wait for it
+  if (mongoose.connection.readyState === 2) {
+    return new Promise((resolve, reject) => {
+      mongoose.connection.once('connected', () => resolve(mongoose));
+      mongoose.connection.once('error', reject);
+    });
+  }
+  
   const mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) {
     throw new Error('MONGODB_URI environment variable is not set');
   }
   
-  // Register models before connecting (they should already be registered from app startup)
-  // But ensure they exist
-  if (!mongoose.models.User) {
-    // Models should be registered by the time this runs, but if not, we'll handle it
-    console.warn('User model not registered - models may need to be imported');
-  }
+  // Use connection options for better resource management
+  const options = {
+    maxPoolSize: 10, // Limit connection pool size
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  };
   
-  return mongoose.connect(mongoUri);
+  return mongoose.connect(mongoUri, options);
 }
 
 function initializeSocketIO(io) {
