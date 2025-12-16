@@ -46,6 +46,7 @@ async function dbConnect() {
 
 function initializeSocketIO(io) {
   // Periodic cleanup of stale socket mappings to prevent memory leaks
+  let lastLogTime = 0;
   setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
@@ -58,12 +59,14 @@ function initializeSocketIO(io) {
         cleaned++;
       }
     }
+    // Only log if we cleaned something or every 5 minutes
     if (cleaned > 0) {
       console.log(`[WebSocket] Cleaned up ${cleaned} stale socket mappings`);
     }
-    // Log connection stats every 5 minutes
-    if (now % 300000 < 60000) {
+    // Log connection stats every 5 minutes (reduced logging)
+    if (now - lastLogTime >= 300000) {
       console.log(`[WebSocket] Active connections: ${userSocketMap.size}, Socket map size: ${socketUserMap.size}`);
+      lastLogTime = now;
     }
   }, 60000); // Every minute
 
