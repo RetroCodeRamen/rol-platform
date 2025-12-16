@@ -204,7 +204,7 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
         await mailService.updateFilter(filter.id, {
           name,
           enabled,
-          conditions,
+          conditions: conditions as any, // Type assertion needed due to interface mismatch
           actions,
         });
       } else {
