@@ -149,11 +149,15 @@ async function checkAndAcceptBuddyRequests() {
     }, { timestamps: true });
     
     const User = mongoose.models.User || mongoose.model('User', UserSchema);
-    const BuddyRequest = mongoose.model('BuddyRequest', new mongoose.Schema({
+    
+    // BuddyRequest schema
+    const BuddyRequestSchema = new mongoose.Schema({
       requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
-    }, { timestamps: true }));
+    }, { timestamps: true });
+    
+    const BuddyRequest = mongoose.models.BuddyRequest || mongoose.model('BuddyRequest', BuddyRequestSchema);
 
     if (!botUserId) return;
 
@@ -164,14 +168,16 @@ async function checkAndAcceptBuddyRequests() {
     }).populate('requesterId', 'username');
 
     for (const request of pendingRequests) {
-      console.log(`[ROLBOT] Auto-accepting buddy request from ${request.requesterId.username}`);
+      const requesterUsername = request.requesterId?.username || 'unknown';
+      console.log(`[ROLBOT] Auto-accepting buddy request from ${requesterUsername}`);
       
       // Accept the request
       request.status = 'accepted';
       await request.save();
 
       // Add to both buddy lists
-      const requester = await User.findById(request.requesterId);
+      const requesterId = request.requesterId._id || request.requesterId;
+      const requester = await User.findById(requesterId);
       const botUser = await User.findById(botUserId);
 
       if (requester && botUser) {
@@ -179,9 +185,9 @@ async function checkAndAcceptBuddyRequests() {
         if (!botUser.buddyList) {
           botUser.buddyList = [];
         }
-        const requesterId = String(request.requesterId._id);
-        if (!botUser.buddyList.some((id) => String(id) === requesterId)) {
-          botUser.buddyList.push(requesterId);
+        const requesterIdStr = String(requesterId);
+        if (!botUser.buddyList.some((id) => String(id) === requesterIdStr)) {
+          botUser.buddyList.push(requesterIdStr);
           await botUser.save();
         }
 
