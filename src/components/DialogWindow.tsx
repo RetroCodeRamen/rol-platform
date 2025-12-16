@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Window } from '@/state/store';
 
 interface DialogWindowProps {
-  window: Window;
+  window?: Window;
   title: string;
   message?: string;
   inputLabel?: string;
