@@ -115,11 +115,28 @@ async function initializeROLBot() {
       console.error('[ROLBOT] Connection error:', error.message);
     });
     
-    // Update status to online
+    // Update status to online and set lastActiveAt
     await User.findByIdAndUpdate(botUserId, {
       status: 'online',
       lastSeen: new Date(),
+      lastActiveAt: new Date(),
+      isManuallyLoggedOff: false,
     });
+    
+    // Keep ROLBOT online by updating lastActiveAt every 20 seconds
+    setInterval(async () => {
+      if (botUserId && !botState.isLoggedOut) {
+        try {
+          await dbConnect();
+          const User = mongoose.models.User || mongoose.model('User');
+          await User.findByIdAndUpdate(botUserId, {
+            lastActiveAt: new Date(),
+          });
+        } catch (error) {
+          console.error('[ROLBOT] Error updating lastActiveAt:', error);
+        }
+      }
+    }, 20000); // Every 20 seconds (within 30 second threshold)
     
     console.log('[ROLBOT] ✅ Initialization complete');
   } catch (error) {
