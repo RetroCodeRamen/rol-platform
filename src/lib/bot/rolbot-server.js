@@ -168,15 +168,16 @@ async function checkAndAcceptBuddyRequests() {
     }).populate('requesterId', 'username');
 
     for (const request of pendingRequests) {
+      // Get requester ID (handle both populated and unpopulated)
+      const requesterId = request.requesterId._id ? String(request.requesterId._id) : String(request.requesterId);
       const requesterUsername = request.requesterId?.username || 'unknown';
-      console.log(`[ROLBOT] Auto-accepting buddy request from ${requesterUsername}`);
+      console.log(`[ROLBOT] Auto-accepting buddy request from ${requesterUsername} (ID: ${requesterId})`);
       
       // Accept the request
       request.status = 'accepted';
       await request.save();
 
       // Add to both buddy lists
-      const requesterId = request.requesterId._id || request.requesterId;
       const requester = await User.findById(requesterId);
       const botUser = await User.findById(botUserId);
 
@@ -185,9 +186,8 @@ async function checkAndAcceptBuddyRequests() {
         if (!botUser.buddyList) {
           botUser.buddyList = [];
         }
-        const requesterIdStr = String(requesterId);
-        if (!botUser.buddyList.some((id) => String(id) === requesterIdStr)) {
-          botUser.buddyList.push(requesterIdStr);
+        if (!botUser.buddyList.some((id) => String(id) === requesterId)) {
+          botUser.buddyList.push(requesterId);
           await botUser.save();
         }
 
