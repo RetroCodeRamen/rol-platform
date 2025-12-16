@@ -43,12 +43,21 @@ sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SER
     
     echo "📥 Cloning/updating repository from GitHub..."
     
-    # Install Node.js 20 if not present
-    if ! command -v node &> /dev/null || [ "\$(node -v | cut -d'v' -f2 | cut -d'.' -f1)" -lt 20 ]; then
-        echo "📦 Installing Node.js 20..."
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    # Install Node.js 22 LTS if not present or outdated
+    CURRENT_NODE_MAJOR=\$(node -v 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1 || echo "0")
+    if ! command -v node &> /dev/null || [ "\$CURRENT_NODE_MAJOR" -lt 22 ]; then
+        echo "📦 Installing Node.js 22 LTS..."
+        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
         apt-get install -y nodejs
+        echo "✅ Node.js \$(node -v) installed"
+    else
+        echo "✅ Node.js \$(node -v) already installed"
     fi
+    
+    # Update npm to latest
+    echo "📦 Updating npm to latest..."
+    npm install -g npm@latest
+    echo "✅ npm \$(npm -v) installed"
     
     # Install PM2 if not present
     if ! command -v pm2 &> /dev/null; then
