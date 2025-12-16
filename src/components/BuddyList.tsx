@@ -691,39 +691,6 @@ export default function BuddyList() {
                     </div>
                   ))}
                   {/* Offline buddies are NOT shown in groups - they only appear in the Offline section */}
-                    <div
-                      key={buddy.id}
-                      className="cursor-pointer"
-                      onDoubleClick={() => {
-                        handleBuddyDoubleClick(buddy);
-                        // Clear unread IM flag when opening IM window
-                        if (buddy.hasUnreadIM) {
-                          setBuddies(
-                            buddies.map((b) =>
-                              b.id === buddy.id ? { ...b, hasUnreadIM: false } : b
-                            )
-                          );
-                        }
-                      }}
-                      onContextMenu={(e) => handleBuddyRightClick(e, buddy)}
-                      style={{
-                        padding: '1px 4px',
-                        fontSize: '11px',
-                        color: AIM_DARK_GREY,
-                        lineHeight: '1.4',
-                        minHeight: '16px',
-                        fontWeight: buddy.hasUnreadIM ? 'bold' : 'normal',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = '#E5E5E5';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {buddy.hasUnreadIM ? `*${buddy.username}` : buddy.username}
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
