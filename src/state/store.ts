@@ -19,6 +19,7 @@ export interface Window {
   isMaximized?: boolean;
   participant?: string; // For IM windows - username of the other participant
   username?: string; // For profile windows - username to view
+  editable?: boolean; // For profile windows - whether the profile is editable
   url?: string; // For web windows - current URL
   // Dialog-specific props
   dialogProps?: {
