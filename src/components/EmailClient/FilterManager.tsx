@@ -211,7 +211,7 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
         await mailService.createFilter({
           name,
           enabled,
-          conditions,
+          conditions: conditions as any, // Type assertion needed due to interface mismatch
           actions,
           order: 0,
         });
