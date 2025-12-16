@@ -373,10 +373,20 @@ async function updateStatus(status) {
   try {
     await dbConnect();
     const User = mongoose.models.User || mongoose.model('User');
-    await User.findByIdAndUpdate(botUserId, {
+    const update = {
       status,
       lastSeen: new Date(),
-    });
+    };
+    
+    // Update lastActiveAt if going online
+    if (status === 'online') {
+      update.lastActiveAt = new Date();
+      update.isManuallyLoggedOff = false;
+    } else if (status === 'offline') {
+      update.isManuallyLoggedOff = true;
+    }
+    
+    await User.findByIdAndUpdate(botUserId, update);
     
     if (botSocket) {
       botSocket.emit('status:update', { status });
