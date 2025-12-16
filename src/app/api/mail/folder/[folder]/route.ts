@@ -69,8 +69,6 @@ export async function GET(
           createdAt: msg.createdAt.toISOString(),
           readAt: msg.readAt?.toISOString(),
           isRead: msg.isRead,
-          hasAttachments: msg.attachments && Array.isArray(msg.attachments) && msg.attachments.length > 0,
-          attachmentCount: msg.attachments && Array.isArray(msg.attachments) ? msg.attachments.length : 0,
         })),
         pagination: {
           page,

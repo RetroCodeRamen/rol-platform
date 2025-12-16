@@ -1,10 +1,3 @@
-export interface IAttachment {
-  id: string;
-  filename: string;
-  size: number;
-  mimeType: string;
-}
-
 export interface IMessage {
   id: string;
   folder: 'Inbox' | 'Sent' | 'Drafts' | 'Trash';
@@ -16,9 +9,6 @@ export interface IMessage {
   body: string;
   date: string;
   read: boolean;
-  attachments?: IAttachment[];
-  hasAttachments?: boolean; // For list view - indicates if message has attachments
-  attachmentCount?: number; // Number of attachments
 }
 
 export interface IFolderInfo {
@@ -108,9 +98,6 @@ export class RestMailService implements IMailService {
       body: msg.body,
       date: msg.createdAt,
       read: msg.isRead,
-      attachments: msg.attachments || [],
-      hasAttachments: msg.hasAttachments || false,
-      attachmentCount: msg.attachmentCount || 0,
     }));
   }
 
@@ -135,11 +122,10 @@ export class RestMailService implements IMailService {
       body: msg.body,
       date: msg.createdAt,
       read: msg.isRead,
-      attachments: msg.attachments || [],
     };
   }
 
-  async sendMessage(message: Omit<IMessage, 'id' | 'date' | 'read' | 'folder'> & { attachmentIds?: string[] }): Promise<IMessage> {
+  async sendMessage(message: Omit<IMessage, 'id' | 'date' | 'read' | 'folder'>): Promise<IMessage> {
     const response = await fetchWithAuth(`${this.apiBase}/send`, {
       method: 'POST',
       body: JSON.stringify({
@@ -148,7 +134,6 @@ export class RestMailService implements IMailService {
         bcc: message.bcc,
         subject: message.subject,
         body: message.body,
-        attachmentIds: (message as any).attachmentIds || [],
       }),
     });
     const data = await response.json();
@@ -215,9 +200,6 @@ export class RestMailService implements IMailService {
       body: msg.body,
       date: msg.createdAt,
       read: msg.isRead,
-      attachments: msg.attachments || [],
-      hasAttachments: msg.hasAttachments || false,
-      attachmentCount: msg.attachmentCount || 0,
     }));
   }
 

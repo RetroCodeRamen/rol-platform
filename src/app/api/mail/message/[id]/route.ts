@@ -3,7 +3,6 @@ import { addSecurityHeaders } from '@/lib/security/headers';
 import { getUserIdFromSession } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongoose';
 import MailMessage from '@/lib/db/models/MailMessage';
-import FileAttachment from '@/lib/db/models/FileAttachment';
 import mongoose from 'mongoose';
 
 export async function GET(
@@ -33,13 +32,10 @@ export async function GET(
 
     await dbConnect();
 
-    // Get message ONLY if it belongs to the current user, populate attachments
+    // Get message ONLY if it belongs to the current user
     const message = await MailMessage.findOne({
       _id: messageId,
       ownerUserId: userId,
-    }).populate({
-      path: 'attachments',
-      model: 'FileAttachment',
     }).lean();
 
     if (!message) {
@@ -50,19 +46,6 @@ export async function GET(
           { status: 404 }
         )
       );
-    }
-
-    // Format attachments - handle both populated objects and ObjectIds
-    let attachments: any[] = [];
-    if (message.attachments && Array.isArray(message.attachments)) {
-      attachments = message.attachments
-        .filter((att: any) => att && typeof att === 'object' && att._id) // Only process populated objects
-        .map((att: any) => ({
-          id: String(att._id),
-          filename: att.originalName || att.filename,
-          size: att.size,
-          mimeType: att.mimeType,
-        }));
     }
 
     return addSecurityHeaders(
@@ -80,7 +63,6 @@ export async function GET(
           createdAt: message.createdAt.toISOString(),
           readAt: message.readAt?.toISOString(),
           isRead: message.isRead,
-          attachments,
         },
       })
     );

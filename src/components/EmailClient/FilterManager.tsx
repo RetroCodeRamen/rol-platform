@@ -204,14 +204,14 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
         await mailService.updateFilter(filter.id, {
           name,
           enabled,
-          conditions: conditions as any,
+          conditions,
           actions,
         });
       } else {
         await mailService.createFilter({
           name,
           enabled,
-          conditions: conditions as any,
+          conditions,
           actions,
           order: 0,
         });
@@ -329,7 +329,7 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
                 <select
                   value={actions.moveToFolder || ''}
                   onChange={(e) =>
-                    setActions({ ...actions, moveToFolder: (e.target.value || undefined) as 'Inbox' | 'Sent' | 'Drafts' | 'Trash' | undefined })
+                    setActions({ ...actions, moveToFolder: e.target.value || undefined })
                   }
                   className="w-full p-1 border-2 border-gray-300 rounded text-sm"
                 >

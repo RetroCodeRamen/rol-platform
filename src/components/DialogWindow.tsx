@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Window } from '@/state/store';
 
 interface DialogWindowProps {
-  window?: Window;
+  window: Window;
   title: string;
   message?: string;
   inputLabel?: string;
@@ -15,7 +15,6 @@ interface DialogWindowProps {
   confirmText?: string;
   cancelText?: string;
   showInput?: boolean;
-  customContent?: React.ReactNode;
 }
 
 export default function DialogWindow({
@@ -30,7 +29,6 @@ export default function DialogWindow({
   confirmText = 'OK',
   cancelText = 'Cancel',
   showInput = false,
-  customContent,
 }: DialogWindowProps) {
   const [inputValue, setInputValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,13 +68,6 @@ export default function DialogWindow({
         {/* Message */}
         {message && (
           <p className="text-sm text-gray-700 mb-4">{message}</p>
-        )}
-
-        {/* Custom Content */}
-        {customContent && (
-          <div className="mb-4">
-            {customContent}
-          </div>
         )}
 
         {/* Input */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { mailService, type IAttachment } from '@/services/MailService';
+import { mailService } from '@/services/MailService';
 import { useAppStore } from '@/state/store';
 import { notificationService } from '@/services/NotificationService';
 import { dispatchMessage } from '@/lib/messaging/AppMessageHandler';
@@ -10,74 +10,14 @@ interface ComposeViewProps {
   onClose: () => void;
 }
 
-interface PendingAttachment extends IAttachment {
-  uploading?: boolean;
-}
-
 export default function ComposeView({ onClose }: ComposeViewProps) {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   
   const currentUser = useAppStore((state) => state.currentUser);
   const addMessage = useAppStore((state) => state.addMessage);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (1MB limit)
-    const MAX_SIZE = 1 * 1024 * 1024; // 1MB
-    if (file.size > MAX_SIZE) {
-      dispatchMessage('SYSTEM_ALERT', {
-        message: `File size exceeds 1MB limit. Maximum size: 1MB`,
-        title: 'File Too Large',
-      });
-      e.target.value = ''; // Clear input
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/mail/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to upload file');
-      }
-
-      setAttachments([...attachments, data.attachment]);
-    } catch (error: any) {
-      console.error('Failed to upload file:', error);
-      dispatchMessage('SYSTEM_ALERT', {
-        message: error?.message || 'Failed to upload file. Please try again.',
-        title: 'Upload Error',
-      });
-    } finally {
-      setIsUploading(false);
-      e.target.value = ''; // Clear input
-    }
-  };
-
-  const handleRemoveAttachment = (id: string) => {
-    setAttachments(attachments.filter(att => att.id !== id));
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,14 +25,12 @@ export default function ComposeView({ onClose }: ComposeViewProps) {
 
     setIsSending(true);
     try {
-      const attachmentIds = attachments.map(att => att.id);
       const sentMessage = await mailService.sendMessage({
         from: currentUser?.email || 'user@ramn.online',
         to,
         subject,
         body,
-        attachmentIds,
-      } as any);
+      });
       addMessage(sentMessage);
       onClose();
     } catch (error: any) {
@@ -154,45 +92,6 @@ export default function ComposeView({ onClose }: ComposeViewProps) {
               placeholder="Enter subject"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Attachments:</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                onChange={handleFileUpload}
-                disabled={isUploading}
-                className="text-sm text-gray-700 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-                accept="image/*,.pdf,.txt"
-              />
-              {isUploading && (
-                <span className="text-xs text-gray-500">Uploading...</span>
-              )}
-            </div>
-            {attachments.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {attachments.map((att) => (
-                  <div
-                    key={att.id}
-                    className="flex items-center justify-between px-2 py-1 bg-gray-100 rounded text-xs"
-                  >
-                    <span className="text-gray-700">
-                      📎 {att.filename} ({formatFileSize(att.size)})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttachment(att.id)}
-                      className="text-red-600 hover:text-red-800 font-semibold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              Maximum file size: 1MB per attachment
-            </p>
           </div>
         </div>
 

@@ -113,6 +113,7 @@ export default function BuddyList() {
     if (currentUser?.username) {
       openWindow('profile', 'My Profile', {
         username: currentUser.username,
+        editable: true,
       });
     }
   };

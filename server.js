@@ -44,6 +44,14 @@ app.prepare().then(() => {
   const { initializeSocketIO } = require('./src/lib/websocket/server.js');
   initializeSocketIO(io);
 
+  // Initialize ROLBOT (testing bot)
+  if (process.env.ENABLE_ROLBOT !== 'false') {
+    const { initializeROLBot } = require('./src/lib/bot/rolbot-server.js');
+    initializeROLBot().catch((err) => {
+      console.error('[ROLBOT] Failed to initialize:', err);
+    });
+  }
+
   httpServer.listen(port, hostname, (err) => {
     if (err) throw err;
     const displayHost = hostname === '0.0.0.0' ? 'localhost' : hostname;

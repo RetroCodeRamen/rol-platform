@@ -16,7 +16,6 @@ export interface IMailMessage extends Document {
   isRead: boolean;
   replyToId?: mongoose.Types.ObjectId; // Optional: reference to message this is replying to
   threadId?: mongoose.Types.ObjectId; // Optional: thread grouping
-  attachments?: mongoose.Types.ObjectId[]; // Array of FileAttachment references
 }
 
 const MailMessageSchema: Schema = new Schema(
@@ -75,11 +74,6 @@ const MailMessageSchema: Schema = new Schema(
     threadId: {
       type: Schema.Types.ObjectId,
       ref: 'MailMessage',
-    },
-    attachments: {
-      type: [Schema.Types.ObjectId],
-      ref: 'FileAttachment',
-      default: [],
     },
   },
   {
