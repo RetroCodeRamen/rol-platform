@@ -329,7 +329,7 @@ function FilterEditor({ filter, onSave, onCancel }: FilterEditorProps) {
                 <select
                   value={actions.moveToFolder || ''}
                   onChange={(e) =>
-                    setActions({ ...actions, moveToFolder: e.target.value || undefined })
+                    setActions({ ...actions, moveToFolder: (e.target.value || undefined) as 'Inbox' | 'Sent' | 'Drafts' | 'Trash' | undefined })
                   }
                   className="w-full p-1 border-2 border-gray-300 rounded text-sm"
                 >
