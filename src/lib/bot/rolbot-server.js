@@ -43,7 +43,24 @@ async function initializeROLBot() {
     console.log('[ROLBOT] Initializing ROLBOT...');
     
     await dbConnect();
-    const User = mongoose.model('User');
+    
+    // Import User model schema
+    const UserSchema = new mongoose.Schema({
+      username: { type: String, required: true, unique: true, lowercase: true },
+      screenName: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      passwordHash: { type: String, required: true },
+      status: { type: String, enum: ['online', 'away', 'busy', 'offline', 'invisible'], default: 'offline' },
+      awayStatus: { type: String, enum: ['available', 'away', 'busy', 'invisible'], default: 'available' },
+      awayMessage: String,
+      buddyList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      lastSeen: Date,
+      createdAt: { type: Date, default: Date.now },
+      updatedAt: { type: Date, default: Date.now },
+    }, { timestamps: true });
+    
+    const User = mongoose.models.User || mongoose.model('User', UserSchema);
     const bcrypt = require('bcryptjs');
     
     // Find or create ROLBOT user
@@ -114,7 +131,24 @@ async function initializeROLBot() {
 async function checkAndAcceptBuddyRequests() {
   try {
     await dbConnect();
-    const User = mongoose.model('User');
+    
+    // Import User model schema
+    const UserSchema = new mongoose.Schema({
+      username: { type: String, required: true, unique: true, lowercase: true },
+      screenName: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      passwordHash: { type: String, required: true },
+      status: { type: String, enum: ['online', 'away', 'busy', 'offline', 'invisible'], default: 'offline' },
+      awayStatus: { type: String, enum: ['available', 'away', 'busy', 'invisible'], default: 'available' },
+      awayMessage: String,
+      buddyList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      lastSeen: Date,
+      createdAt: { type: Date, default: Date.now },
+      updatedAt: { type: Date, default: Date.now },
+    }, { timestamps: true });
+    
+    const User = mongoose.models.User || mongoose.model('User', UserSchema);
     const BuddyRequest = mongoose.model('BuddyRequest', new mongoose.Schema({
       requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -315,7 +349,7 @@ async function updateStatus(status) {
   
   try {
     await dbConnect();
-    const User = mongoose.model('User');
+    const User = mongoose.models.User || mongoose.model('User');
     await User.findByIdAndUpdate(botUserId, {
       status,
       lastSeen: new Date(),
@@ -334,7 +368,7 @@ async function updateAwayMessage(message) {
   
   try {
     await dbConnect();
-    const User = mongoose.model('User');
+    const User = mongoose.models.User || mongoose.model('User');
     const update = {
       awayMessage: message,
       lastSeen: new Date(),
