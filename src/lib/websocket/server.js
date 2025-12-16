@@ -45,6 +45,28 @@ async function dbConnect() {
 }
 
 function initializeSocketIO(io) {
+  // Periodic cleanup of stale socket mappings to prevent memory leaks
+  setInterval(() => {
+    const now = Date.now();
+    let cleaned = 0;
+    // Clean up stale socket mappings (sockets disconnected but not cleaned up)
+    for (const [socketId, userId] of socketUserMap.entries()) {
+      const socket = io.sockets.sockets.get(socketId);
+      if (!socket || !socket.connected) {
+        userSocketMap.delete(userId);
+        socketUserMap.delete(socketId);
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) {
+      console.log(`[WebSocket] Cleaned up ${cleaned} stale socket mappings`);
+    }
+    // Log connection stats every 5 minutes
+    if (now % 300000 < 60000) {
+      console.log(`[WebSocket] Active connections: ${userSocketMap.size}, Socket map size: ${socketUserMap.size}`);
+    }
+  }, 60000); // Every minute
+
   // Middleware to authenticate socket connections
   io.use(async (socket, next) => {
     try {

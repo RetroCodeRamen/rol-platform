@@ -17,6 +17,11 @@ interface IMWindowProps {
 export default function IMWindow({ window }: IMWindowProps) {
   // All hooks must be called before any conditional returns
   const [currentThread, setCurrentThread] = useState<IIMThread | null>(null);
+  // Use ref to access currentThread in socket handlers without adding to dependencies
+  const currentThreadRef = useRef(currentThread);
+  useEffect(() => {
+    currentThreadRef.current = currentThread;
+  }, [currentThread]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [textColor, setTextColor] = useState('#000000');
@@ -104,8 +109,9 @@ export default function IMWindow({ window }: IMWindowProps) {
         // Play sound notification
         SoundService.play('new_im');
         
-        // Optimistically add message to thread
-        if (currentThread) {
+        // Use ref to access current thread without closure dependency
+        const thread = currentThreadRef.current;
+        if (thread) {
           const newMessage: IIMMessage = {
             id: message.id,
             from: message.from,
@@ -114,8 +120,8 @@ export default function IMWindow({ window }: IMWindowProps) {
             timestamp: message.timestamp,
           };
           setCurrentThread({
-            ...currentThread,
-            messages: [...currentThread.messages, newMessage],
+            ...thread,
+            messages: [...thread.messages, newMessage],
           });
         }
         
@@ -132,10 +138,11 @@ export default function IMWindow({ window }: IMWindowProps) {
       console.log('[IMWindow] Received im:sent event:', message);
       // Reload thread if this message is for current participant
       if (message.to === participant || message.from === currentUser?.username) {
-        // Replace optimistic message with real message
-        if (currentThread) {
+        // Use ref to access current thread without closure dependency
+        const thread = currentThreadRef.current;
+        if (thread) {
           // Remove any temp messages and add the real one
-          const filteredMessages = currentThread.messages.filter(m => !m.id.startsWith('temp_'));
+          const filteredMessages = thread.messages.filter(m => !m.id.startsWith('temp_'));
           const newMessage: IIMMessage = {
             id: message.id,
             from: message.from,
@@ -147,7 +154,7 @@ export default function IMWindow({ window }: IMWindowProps) {
           const exists = filteredMessages.some(m => m.id === message.id);
           if (!exists) {
             setCurrentThread({
-              ...currentThread,
+              ...thread,
               messages: [...filteredMessages, newMessage],
             });
           }
@@ -164,11 +171,12 @@ export default function IMWindow({ window }: IMWindowProps) {
         message: error.error || 'Failed to send message',
         title: 'Error',
       });
-      // Remove optimistic message on error
-      if (currentThread) {
+      // Use ref to access current thread without closure dependency
+      const thread = currentThreadRef.current;
+      if (thread) {
         setCurrentThread({
-          ...currentThread,
-          messages: currentThread.messages.filter(m => !m.id.startsWith('temp_')),
+          ...thread,
+          messages: thread.messages.filter(m => !m.id.startsWith('temp_')),
         });
       }
     };
@@ -186,7 +194,7 @@ export default function IMWindow({ window }: IMWindowProps) {
       socket.off('im:error', handleError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participant, currentUser, currentThread]);
+  }, [participant, currentUser?.username]); // Removed currentThread dependency - use ref instead
 
   // Early return after all hooks
   if (!window || !participant) {

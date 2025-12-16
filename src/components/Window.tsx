@@ -154,6 +154,11 @@ export default function WindowComponent({ window: windowData, children, icon }: 
   const titleBarHeight = currentTheme === 'aol5' ? '26px' : '28px';
 
   useEffect(() => {
+    // Only add listeners when actually dragging or resizing
+    if (!isDragging && !isResizing) {
+      return;
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const deltaX = e.clientX - dragStart.x;
@@ -181,14 +186,14 @@ export default function WindowComponent({ window: windowData, children, icon }: 
       setIsResizing(false);
     };
 
-    if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    // Always cleanup listeners when effect runs again or component unmounts
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
   }, [isDragging, isResizing, dragStart, resizeStart, windowData, updateWindow, currentTheme]);
 
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
