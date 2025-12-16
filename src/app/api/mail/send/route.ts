@@ -6,6 +6,7 @@ import MailMessage from '@/lib/db/models/MailMessage';
 import { applyFilters } from '@/lib/mail/filterEngine';
 import User from '@/lib/db/models/User';
 import { escapeRegex } from '@/lib/security/validation';
+import mongoose from 'mongoose';
 
 // Parse comma-separated email addresses
 function parseEmailAddresses(addresses: string): string[] {
@@ -155,7 +156,8 @@ export async function POST(request: NextRequest) {
     const inboxMessages = await Promise.all(
       recipientUserIds.map(async (recipientId) => {
         // Apply filters to determine folder and read status
-        const filteredMessage = await applyFilters(recipientId, {
+        const recipientObjectId = new mongoose.Types.ObjectId(recipientId);
+        const filteredMessage = await applyFilters(recipientObjectId, {
           from: fromAddress,
           to: toAddresses.join(', '),
           subject,
