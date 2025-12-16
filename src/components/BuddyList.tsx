@@ -644,7 +644,7 @@ export default function BuddyList() {
                       lineHeight: '1.3',
                     }}
                   >
-                    {group.name} ({onlineCount}/{totalBuddies})
+                    {group.name} ({onlineCount})
                   </span>
                 </div>
               </div>
@@ -690,8 +690,7 @@ export default function BuddyList() {
                       )}
                     </div>
                   ))}
-                  {/* Show offline buddies in same group - Grey text */}
-                  {group.offlineBuddies.map((buddy) => (
+                  {/* Offline buddies are NOT shown in groups - they only appear in the Offline section */}
                     <div
                       key={buddy.id}
                       className="cursor-pointer"
